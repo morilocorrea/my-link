@@ -1,0 +1,29 @@
+name: mylink
+description: MyLink — gerenciador pessoal de links em Flutter.
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.5.3
+  csv: ^6.0.0
+  file_picker: ^10.3.10
+  url_launcher: ^6.3.2
+  share_plus: ^12.0.2
+  mobile_scanner: ^7.1.4
+  qr_flutter: ^4.1.0
+  webview_flutter: ^4.13.0
+  # 1.9.0 requires compileSdk 37; keep the SDK 36-compatible Android toolchain.
+  receive_sharing_intent: 1.8.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

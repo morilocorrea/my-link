@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "MyLink - Android Debug",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/lib/main.dart",
+      "flutterMode": "debug",
+    },
+    {
+      "name": "MyLink - Android Release",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/lib/main.dart",
+      "flutterMode": "release",
+    }
+  ]
+}
