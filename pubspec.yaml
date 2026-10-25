@@ -22,6 +22,7 @@ dependencies:
   http: ^1.2.0
   # 1.9.0 requires compileSdk 37; keep the SDK 36-compatible Android toolchain.
   receive_sharing_intent: 1.8.1
+  google_fonts: ^8.2.1
 
 dev_dependencies:
   flutter_test:

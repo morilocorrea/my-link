@@ -7,6 +7,7 @@ import 'screens/library_screen.dart';
 import 'services/drive_access_service.dart';
 import 'services/google_connection.dart';
 import 'services/google_oauth_config.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,8 +57,8 @@ class MyLinkApp extends StatelessWidget {
     builder: (context, _) => MaterialApp(
       title: 'MyLink',
       debugShowCheckedModeBanner: false,
-      theme: _theme(Brightness.light),
-      darkTheme: _theme(Brightness.dark),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: library.state.dark ? ThemeMode.dark : ThemeMode.light,
       home: startupError != null
           ? const Scaffold(
@@ -81,94 +82,95 @@ class MyLinkApp extends StatelessWidget {
           : _Welcome(library: library),
     ),
   );
-
-  ThemeData _theme(Brightness brightness) {
-    final dark = brightness == Brightness.dark;
-    return ThemeData(
-      useMaterial3: true,
-      brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xff0095ff),
-        brightness: brightness,
-        primary: const Color(0xff0095ff),
-      ),
-      scaffoldBackgroundColor: dark ? const Color(0xff141820) : Colors.white,
-      appBarTheme: AppBarTheme(
-        centerTitle: true,
-        backgroundColor: dark ? const Color(0xff141820) : Colors.white,
-        surfaceTintColor: Colors.transparent,
-      ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: dark ? const Color(0xff202733) : const Color(0xfff4f6f9),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
 }
 
 class _Welcome extends StatelessWidget {
   const _Welcome({required this.library});
   final BookmarkLibrary library;
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 440),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.bookmarks_rounded,
-                  size: 100,
-                  color: Color(0xff0095ff),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Seus links, organizados',
-                  style: Theme.of(context).textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Salve URLs, crie categorias, marque favoritos e leve seu backup CSV com você.',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                FilledButton(
-                  onPressed: () async {
-                    try {
-                      await library.finishOnboarding();
-                    } catch (_) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Não foi possível salvar. Tente novamente.',
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                  child: const Text('Começar'),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Reimplementação independente em Flutter. Dados locais; sem anúncios.',
-                  textAlign: TextAlign.center,
-                ),
-              ],
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final secondaryTextColor = isDark
+        ? AppColors.textSecondaryDark
+        : AppColors.textSecondaryLight;
+
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? AppColors.secondaryDark
+                          : AppColors.secondary,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Icon(
+                      Icons.bookmarks_rounded,
+                      size: 56,
+                      color: isDark ? AppColors.primaryDark : AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Seus links, organizados',
+                    style: theme.textTheme.headlineLarge,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Salve URLs, crie categorias, marque favoritos e leve seu backup CSV com você.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: secondaryTextColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: FilledButton(
+                      onPressed: () async {
+                        try {
+                          await library.finishOnboarding();
+                        } catch (_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Não foi possível salvar. Tente novamente.',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Começar'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Reimplementação independente em Flutter. Dados locais; sem anúncios.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: secondaryTextColor,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../bookmarks.dart';
 import '../controllers/google_drive_controller.dart';
 import '../services/google_connection.dart';
+import '../theme/app_theme.dart';
 
 class GoogleDriveScreen extends StatefulWidget {
   const GoogleDriveScreen({super.key, required this.controller, this.library});
@@ -223,10 +224,10 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          const Icon(
+          Icon(
             Icons.cloud_off_rounded,
             size: 64,
-            color: Color(0xff0095ff),
+            color: AppColors.primaryOf(context),
           ),
           const SizedBox(height: 16),
           Text(
@@ -283,7 +284,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
               children: [
                 CircleAvatar(
                   radius: 28,
-                  backgroundColor: const Color(0xffe7f4ff),
+                  backgroundColor: AppColors.secondaryOf(context),
                   backgroundImage: user.photoUrl != null
                       ? NetworkImage(user.photoUrl!)
                       : null,
@@ -293,10 +294,10 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                         }
                       : null,
                   child: user.photoUrl == null
-                      ? const Icon(
+                      ? Icon(
                           Icons.person,
                           size: 32,
-                          color: Color(0xff0095ff),
+                          color: AppColors.primaryOf(context),
                         )
                       : null,
                 ),
