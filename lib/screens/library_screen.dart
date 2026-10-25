@@ -11,14 +11,24 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../bookmarks.dart';
+import '../controllers/google_drive_controller.dart';
+import '../services/drive_access_service.dart';
+import '../services/google_connection.dart';
+import '../services/google_oauth_config.dart';
+import 'google_drive_screen.dart';
 import 'web_tools.dart';
 
 const _sortLabels = ['New First', 'Old First', 'A to Z', 'Z to A'];
 const _titles = ['Home', 'Category', 'TimeLine', 'Favorite'];
 
 class LibraryScreen extends StatefulWidget {
-  const LibraryScreen({super.key, required this.library});
+  const LibraryScreen({
+    super.key,
+    required this.library,
+    this.googleDriveController,
+  });
   final BookmarkLibrary library;
+  final GoogleDriveController? googleDriveController;
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
@@ -34,7 +44,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    if (defaultTargetPlatform == TargetPlatform.android) {
       final receiver = ReceiveSharingIntent.instance;
       _subscription = receiver.getMediaStream().listen(
         _receive,
@@ -407,8 +417,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
       if (picked == null || !mounted) return;
       final file = picked.files.single;
-      if (file.size > 5 * 1024 * 1024) {
-        throw const FormatException('O CSV deve ter no máximo 5 MB.');
+      if (file.size > library.csvConfig.maxCsvSizeBytes) {
+        throw FormatException(
+          'O CSV deve ter no máximo ${library.csvConfig.maxCsvSizeMb} MB.',
+        );
       }
       final bytes = file.bytes;
       if (bytes == null) {
@@ -427,12 +439,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _open(Bookmark link, {bool external = false}) => _run(() async {
-    if (!external &&
-        !kIsWeb &&
-        [
-          TargetPlatform.android,
-          TargetPlatform.iOS,
-        ].contains(defaultTargetPlatform)) {
+    if (!external && defaultTargetPlatform == TargetPlatform.android) {
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
           builder: (_) => BrowserScreen(url: link.url, title: link.title),
@@ -491,21 +498,24 @@ class _LibraryScreenState extends State<LibraryScreen> {
       child: ListView(
         children: [
           const DrawerHeader(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.bookmarks_rounded,
-                  size: 50,
-                  color: Color(0xff0095ff),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'MyLink',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                Text('Seus links, sempre à mão'),
-              ],
+            child: SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.bookmarks_rounded,
+                    size: 40,
+                    color: Color(0xff0095ff),
+                  ),
+                  SizedBox(height: 12),
+                  Text(
+                    'MyLink',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  Text('Seus links, sempre à mão'),
+                ],
+              ),
             ),
           ),
           for (var i = 0; i < _titles.length; i++)
@@ -565,13 +575,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.cloud_off_outlined),
+            leading: const Icon(Icons.cloud_outlined),
             title: const Text('Google Drive'),
-            subtitle: const Text('Integração planejada; requer OAuth próprio'),
+            subtitle: const Text('Backup e restauração no Google Drive'),
             onTap: () {
               Navigator.pop(context);
-              _message(
-                'Google Drive ainda não implementado. Use o backup CSV.',
+              final controller =
+                  widget.googleDriveController ??
+                  GoogleDriveController(
+                    connection: DefaultGoogleConnection(
+                      config: const GoogleOAuthConfig.fromEnvironment(),
+                    ),
+                    driveAccessService: DefaultDriveAccessService(),
+                  );
+              Navigator.of(context).push<void>(
+                MaterialPageRoute(
+                  builder: (_) => GoogleDriveScreen(
+                    controller: controller,
+                    library: library,
+                  ),
+                ),
               );
             },
           ),
@@ -587,7 +610,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 children: [
                   const Text(
                     'Reimplementação independente. Não afiliada ao app original. '
-                    'Dados locais; a abertura de URLs usa a rede. Especificações em analyze/clone-app/.',
+                    'Dados locais; a abertura de URLs e a conexão opcional com o Google Drive utilizam a rede.',
                   ),
                 ],
               );

@@ -17,6 +17,9 @@ dependencies:
   mobile_scanner: ^7.1.4
   qr_flutter: ^4.1.0
   webview_flutter: ^4.13.0
+  google_sign_in: ^7.2.0
+  googleapis: ^13.2.0
+  http: ^1.2.0
   # 1.9.0 requires compileSdk 37; keep the SDK 36-compatible Android toolchain.
   receive_sharing_intent: 1.8.1
 

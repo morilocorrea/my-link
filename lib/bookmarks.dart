@@ -4,6 +4,8 @@ import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'services/csv_config.dart';
+
 const defaultCategories = [
   'Articles',
   'Application',
@@ -187,11 +189,20 @@ class PreferenceStorage implements LibraryStorage {
   Future<void> write(String value) => _preferences.setString(_key, value);
 }
 
+String _formatNumber(int value) {
+  final s = value.toString();
+  return s.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => '.');
+}
+
 /// Mutations are serialized and only published after persistence succeeds.
 /// This keeps concurrent favorites/imports from overwriting each other's state.
 class BookmarkLibrary extends ChangeNotifier {
-  BookmarkLibrary(this.storage);
+  BookmarkLibrary(
+    this.storage, {
+    this.csvConfig = const CsvConfig.fromEnvironment(),
+  });
   final LibraryStorage storage;
+  final CsvConfig csvConfig;
   LibraryState _state = LibraryState();
   LibraryState get state => _state;
   Future<void> _tail = Future.value();
@@ -351,8 +362,10 @@ class BookmarkLibrary extends ChangeNotifier {
   ]);
 
   Future<void> importCsv(String source) async {
-    if (utf8.encode(source).length > 5 * 1024 * 1024) {
-      throw const FormatException('O CSV deve ter no máximo 5 MB.');
+    if (utf8.encode(source).length > csvConfig.maxCsvSizeBytes) {
+      throw FormatException(
+        'O CSV deve ter no máximo ${csvConfig.maxCsvSizeMb} MB.',
+      );
     }
     final clean = source.replaceFirst(RegExp(r'^\uFEFF'), '');
     final eol = clean.contains('\r\n') ? '\r\n' : '\n';
@@ -361,9 +374,9 @@ class BookmarkLibrary extends ChangeNotifier {
     ).convert(clean, eol: eol);
     if (rows.isEmpty ||
         !listEquals(rows.first, csvHeader) ||
-        rows.length > 10001) {
-      throw const FormatException(
-        'CSV inválido: confira o cabeçalho e o limite de 10.000 links.',
+        rows.length > csvConfig.maxImportLinks + 1) {
+      throw FormatException(
+        'CSV inválido: confira o cabeçalho e o limite de ${_formatNumber(csvConfig.maxImportLinks)} links.',
       );
     }
     // Validate the entire file before the single commit: no partial imports.

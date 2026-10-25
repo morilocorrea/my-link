@@ -2,11 +2,24 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'bookmarks.dart';
+import 'controllers/google_drive_controller.dart';
 import 'screens/library_screen.dart';
+import 'services/drive_access_service.dart';
+import 'services/google_connection.dart';
+import 'services/google_oauth_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final library = BookmarkLibrary(PreferenceStorage());
+  const config = GoogleOAuthConfig.fromEnvironment();
+  final googleConnection = DefaultGoogleConnection(config: config);
+  final driveAccessService = DefaultDriveAccessService(
+    requestTimeout: Duration(seconds: config.driveTimeoutSeconds),
+  );
+  final driveController = GoogleDriveController(
+    connection: googleConnection,
+    driveAccessService: driveAccessService,
+  );
   Object? error;
   try {
     await library.load();
@@ -14,13 +27,28 @@ Future<void> main() async {
     error = e;
     if (kDebugMode) debugPrint('Library initialization failed: $e\n$stack');
   }
-  runApp(MyLinkApp(library: library, startupError: error));
+  runApp(
+    MyLinkApp(
+      library: library,
+      startupError: error,
+      googleOAuthConfig: config,
+      googleDriveController: driveController,
+    ),
+  );
 }
 
 class MyLinkApp extends StatelessWidget {
-  const MyLinkApp({super.key, required this.library, this.startupError});
+  const MyLinkApp({
+    super.key,
+    required this.library,
+    this.startupError,
+    this.googleOAuthConfig = const GoogleOAuthConfig.fromEnvironment(),
+    this.googleDriveController,
+  });
   final BookmarkLibrary library;
   final Object? startupError;
+  final GoogleOAuthConfig googleOAuthConfig;
+  final GoogleDriveController? googleDriveController;
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
@@ -46,7 +74,10 @@ class MyLinkApp extends StatelessWidget {
               ),
             )
           : library.state.onboarded
-          ? LibraryScreen(library: library)
+          ? LibraryScreen(
+              library: library,
+              googleDriveController: googleDriveController,
+            )
           : _Welcome(library: library),
     ),
   );

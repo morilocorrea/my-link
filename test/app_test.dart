@@ -1,5 +1,6 @@
 import 'package:mylink/bookmarks.dart';
 import 'package:mylink/main.dart';
+import 'package:mylink/services/google_oauth_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -13,6 +14,25 @@ void main() {
     await library.load();
   });
   tearDown(() => library.dispose());
+
+  for (final config in [
+    const GoogleOAuthConfig(),
+    const GoogleOAuthConfig(
+      serverClientId: '1234567890-fixture.apps.googleusercontent.com',
+    ),
+  ]) {
+    testWidgets(
+      'local app starts with OAuth configuration present=${config.hasServerClientId}',
+      (tester) async {
+        final app = MyLinkApp(library: library, googleOAuthConfig: config);
+        await tester.pumpWidget(app);
+        expect(app.googleOAuthConfig, same(config));
+        expect(find.text('Seus links, organizados'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+      variant: platform,
+    );
+  }
 
   testWidgets('onboarding opens an empty library', (tester) async {
     await tester.pumpWidget(MyLinkApp(library: library));

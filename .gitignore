@@ -39,6 +39,11 @@ $RECYCLE.BIN/
 /build/
 /coverage/
 
+# Local build configuration; only the public template is versioned.
+/.env
+/.env.*
+!/.env.example
+
 # Symbolication related
 app.*.symbols
 
