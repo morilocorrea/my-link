@@ -18,6 +18,7 @@ import '../services/google_oauth_config.dart';
 import '../theme/app_theme.dart';
 import '../widgets/my_link_logo.dart';
 import 'google_drive_screen.dart';
+import 'settings_screen.dart';
 import 'web_tools.dart';
 
 const _sortLabels = ['New First', 'Old First', 'A to Z', 'Z to A'];
@@ -686,39 +687,6 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 _generateQr();
               },
             ),
-            Container(
-              height: 48,
-              margin: const EdgeInsets.symmetric(vertical: 2),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-                clipBehavior: Clip.antiAlias,
-                child: SwitchListTile(
-                  dense: true,
-                  visualDensity: const VisualDensity(
-                    horizontal: 0,
-                    vertical: -2,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  secondary: Icon(
-                    Icons.dark_mode_outlined,
-                    size: 20,
-                    color: AppColors.textSecondaryOf(context),
-                  ),
-                  title: Text(
-                    'Modo escuro',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: AppColors.textPrimaryOf(context),
-                    ),
-                  ),
-                  value: library.state.dark,
-                  onChanged: (v) => _run(() => library.setDark(v)),
-                ),
-              ),
-            ),
             _drawerTile(
               icon: Icons.file_upload_outlined,
               title: 'Exportar CSV',
@@ -760,26 +728,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 );
               },
             ),
+            const SizedBox(height: 8),
+            Divider(color: AppColors.dividerOf(context), height: 1),
+            const SizedBox(height: 8),
             _drawerTile(
-              icon: Icons.info_outline,
-              title: 'Sobre',
+              icon: Icons.settings_outlined,
+              title: 'Settings',
               onTap: () {
                 Navigator.pop(context);
-                showAboutDialog(
-                  context: context,
-                  applicationName: 'MyLink',
-                  applicationVersion: '0.1.0',
-                  applicationIcon: const MyLinkLogoBadge(
-                    size: 48,
-                    iconSize: 28,
-                    borderRadius: 12,
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(
+                    builder: (_) => SettingsScreen(library: library),
                   ),
-                  children: [
-                    const Text(
-                      'Reimplementação independente. Não afiliada ao app original. '
-                      'Dados locais; a abertura de URLs e a conexão opcional com o Google Drive utilizam a rede.',
-                    ),
-                  ],
                 );
               },
             ),

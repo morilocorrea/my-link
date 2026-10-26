@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:mylink/bookmarks.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mylink/bookmarks.dart';
 
 class MemoryStorage implements LibraryStorage {
   MemoryStorage({this.simulateLatency = true});
@@ -221,8 +222,39 @@ void main() {
     final reloaded = BookmarkLibrary(storage);
     await reloaded.load();
     expect(reloaded.state.dark, isTrue);
+    expect(reloaded.state.themeMode, ThemeMode.dark);
     expect(reloaded.state.sort, LinkSort.az);
     expect(reloaded.state.onboarded, isTrue);
     reloaded.dispose();
   });
+
+  test(
+    'setThemeMode supports system, light and dark with backward compatibility',
+    () async {
+      await library.setThemeMode(ThemeMode.light);
+      expect(library.state.themeMode, ThemeMode.light);
+      expect(library.state.dark, isFalse);
+
+      await library.setThemeMode(ThemeMode.dark);
+      expect(library.state.themeMode, ThemeMode.dark);
+      expect(library.state.dark, isTrue);
+
+      await library.setThemeMode(ThemeMode.system);
+      expect(library.state.themeMode, ThemeMode.system);
+      expect(library.state.dark, isFalse);
+
+      // Backward compatibility with legacy JSON containing only "dark": true
+      final legacyJson = {
+        'schemaVersion': 1,
+        'links': [],
+        'categories': ['Articles'],
+        'dark': true,
+        'onboarded': true,
+        'sort': 'newest',
+      };
+      final parsedLegacy = LibraryState.fromJson(legacyJson);
+      expect(parsedLegacy.themeMode, ThemeMode.dark);
+      expect(parsedLegacy.dark, isTrue);
+    },
+  );
 }

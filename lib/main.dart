@@ -60,7 +60,7 @@ class MyLinkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
-      themeMode: library.state.dark ? ThemeMode.dark : ThemeMode.light,
+      themeMode: library.state.themeMode,
       home: startupError != null
           ? const Scaffold(
               body: SafeArea(

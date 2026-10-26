@@ -63,42 +63,58 @@ void main() {
 
     tearDown(() => library.dispose());
 
-    testWidgets('toggling dark mode in drawer updates theme dynamically', (
-      tester,
-    ) async {
-      final app = MyLinkApp(library: library);
-      await tester.pumpWidget(app);
-      await tester.pumpAndSettle();
+    testWidgets(
+      'navigating to Settings from drawer updates theme dynamically',
+      (tester) async {
+        final app = MyLinkApp(library: library);
+        await tester.pumpWidget(app);
+        await tester.pumpAndSettle();
 
-      // Initially in light mode
-      expect(library.state.dark, isFalse);
-      var materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      expect(materialApp.themeMode, ThemeMode.light);
+        // Initially in system/light mode
+        expect(library.state.dark, isFalse);
 
-      // Open drawer
-      final scaffoldState = tester.state<ScaffoldState>(find.byType(Scaffold));
-      scaffoldState.openDrawer();
-      await tester.pumpAndSettle();
+        // Open drawer
+        final scaffoldState = tester.state<ScaffoldState>(
+          find.byType(Scaffold),
+        );
+        scaffoldState.openDrawer();
+        await tester.pumpAndSettle();
 
-      // Find the dark mode switch and tap it
-      final switchFinder = find.byType(Switch);
-      expect(switchFinder, findsOneWidget);
-      await tester.runAsync(() => tester.tap(switchFinder));
-      await tester.pumpAndSettle();
+        // Scroll and find Settings item in drawer
+        final settingsFinder = find.text('Settings');
+        await tester.scrollUntilVisible(
+          settingsFinder,
+          100,
+          scrollable: find.byType(Scrollable).last,
+        );
+        expect(settingsFinder, findsOneWidget);
+        await tester.tap(settingsFinder);
+        await tester.pumpAndSettle();
 
-      // Now dark mode should be enabled
-      expect(library.state.dark, isTrue);
-      materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      expect(materialApp.themeMode, ThemeMode.dark);
+        // Verify SettingsScreen is displayed
+        expect(find.text('Configurações'), findsOneWidget);
+        expect(find.text('Tema do Aplicativo'), findsOneWidget);
 
-      // Tap switch again to toggle back
-      await tester.runAsync(() => tester.tap(switchFinder));
-      await tester.pumpAndSettle();
+        // Update theme to dark mode
+        await tester.runAsync(() => library.setThemeMode(ThemeMode.dark));
+        await tester.pumpAndSettle();
 
-      expect(library.state.dark, isFalse);
-      materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
-      expect(materialApp.themeMode, ThemeMode.light);
-    }, variant: platform);
+        expect(library.state.dark, isTrue);
+        expect(library.state.themeMode, ThemeMode.dark);
+        var materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+        expect(materialApp.themeMode, ThemeMode.dark);
+
+        // Update theme back to light mode
+        await tester.runAsync(() => library.setThemeMode(ThemeMode.light));
+        await tester.pumpAndSettle();
+
+        expect(library.state.dark, isFalse);
+        expect(library.state.themeMode, ThemeMode.light);
+        materialApp = tester.widget<MaterialApp>(find.byType(MaterialApp));
+        expect(materialApp.themeMode, ThemeMode.light);
+      },
+      variant: platform,
+    );
 
     testWidgets(
       'category tab renders two-column grid with 16px radius cards',

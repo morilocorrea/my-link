@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/csv_config.dart';
@@ -117,35 +118,53 @@ class LibraryState {
   LibraryState({
     Iterable<Bookmark> links = const [],
     Iterable<String> categories = defaultCategories,
-    this.dark = false,
+    ThemeMode? themeMode,
+    bool? dark,
     this.onboarded = false,
     this.sort = LinkSort.newest,
   }) : links = List.unmodifiable(links),
-       categories = List.unmodifiable(categories);
+       categories = List.unmodifiable(categories),
+       themeMode =
+           themeMode ??
+           (dark != null
+               ? (dark ? ThemeMode.dark : ThemeMode.light)
+               : ThemeMode.system);
 
   final List<Bookmark> links;
   final List<String> categories;
-  final bool dark, onboarded;
+  final ThemeMode themeMode;
+  final bool onboarded;
   final LinkSort sort;
+
+  bool get dark => themeMode == ThemeMode.dark;
 
   LibraryState copyWith({
     Iterable<Bookmark>? links,
     Iterable<String>? categories,
+    ThemeMode? themeMode,
     bool? dark,
     bool? onboarded,
     LinkSort? sort,
-  }) => LibraryState(
-    links: links ?? this.links,
-    categories: categories ?? this.categories,
-    dark: dark ?? this.dark,
-    onboarded: onboarded ?? this.onboarded,
-    sort: sort ?? this.sort,
-  );
+  }) {
+    final resolvedThemeMode =
+        themeMode ??
+        (dark != null
+            ? (dark ? ThemeMode.dark : ThemeMode.light)
+            : this.themeMode);
+    return LibraryState(
+      links: links ?? this.links,
+      categories: categories ?? this.categories,
+      themeMode: resolvedThemeMode,
+      onboarded: onboarded ?? this.onboarded,
+      sort: sort ?? this.sort,
+    );
+  }
 
   Map<String, Object> toJson() => {
     'schemaVersion': 1,
     'links': links.map((e) => e.toJson()).toList(),
     'categories': categories,
+    'themeMode': themeMode.name,
     'dark': dark,
     'onboarded': onboarded,
     'sort': sort.name,
@@ -165,10 +184,25 @@ class LibraryState {
         links.any((e) => !categories.contains(e.category))) {
       throw const FormatException('Armazenamento inconsistente.');
     }
+
+    ThemeMode resolvedThemeMode;
+    if (json['themeMode'] is String) {
+      resolvedThemeMode = ThemeMode.values.firstWhere(
+        (e) => e.name == json['themeMode'],
+        orElse: () => ThemeMode.system,
+      );
+    } else if (json['dark'] is bool) {
+      resolvedThemeMode = (json['dark'] as bool)
+          ? ThemeMode.dark
+          : ThemeMode.light;
+    } else {
+      resolvedThemeMode = ThemeMode.system;
+    }
+
     return LibraryState(
       links: links,
       categories: categories,
-      dark: json['dark'] as bool,
+      themeMode: resolvedThemeMode,
       onboarded: json['onboarded'] as bool,
       sort: LinkSort.values.byName(json['sort'] as String),
     );
@@ -301,7 +335,10 @@ class BookmarkLibrary extends ChangeNotifier {
     ),
   );
 
-  Future<void> setDark(bool value) => _change((s) => s.copyWith(dark: value));
+  Future<void> setThemeMode(ThemeMode mode) =>
+      _change((s) => s.copyWith(themeMode: mode));
+  Future<void> setDark(bool value) =>
+      setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
   Future<void> setSort(LinkSort value) =>
       _change((s) => s.copyWith(sort: value));
   Future<void> finishOnboarding() =>
