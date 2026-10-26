@@ -8,6 +8,7 @@ import 'services/drive_access_service.dart';
 import 'services/google_connection.dart';
 import 'services/google_oauth_config.dart';
 import 'theme/app_theme.dart';
+import 'widgets/my_link_logo.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -105,20 +106,10 @@ class _Welcome extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 96,
-                    height: 96,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.secondaryDark
-                          : AppColors.secondary,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Icon(
-                      Icons.bookmarks_rounded,
-                      size: 56,
-                      color: isDark ? AppColors.primaryDark : AppColors.primary,
-                    ),
+                  const MyLinkLogoBadge(
+                    size: 96,
+                    iconSize: 56,
+                    borderRadius: 24,
                   ),
                   const SizedBox(height: 32),
                   Text(

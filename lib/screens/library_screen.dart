@@ -16,6 +16,7 @@ import '../services/drive_access_service.dart';
 import '../services/google_connection.dart';
 import '../services/google_oauth_config.dart';
 import '../theme/app_theme.dart';
+import '../widgets/my_link_logo.dart';
 import 'google_drive_screen.dart';
 import 'web_tools.dart';
 
@@ -593,20 +594,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? AppColors.secondaryDark
-                          : AppColors.secondary,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      Icons.bookmarks_rounded,
-                      size: 28,
-                      color: isDark ? AppColors.primaryDark : AppColors.primary,
-                    ),
+                  const MyLinkLogoBadge(
+                    size: 48,
+                    iconSize: 28,
+                    borderRadius: 14,
                   ),
                   const SizedBox(height: 14),
                   Text(
@@ -778,6 +769,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   context: context,
                   applicationName: 'MyLink',
                   applicationVersion: '0.1.0',
+                  applicationIcon: const MyLinkLogoBadge(
+                    size: 48,
+                    iconSize: 28,
+                    borderRadius: 12,
+                  ),
                   children: [
                     const Text(
                       'Reimplementação independente. Não afiliada ao app original. '
@@ -934,7 +930,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.bookmark_border_rounded, size: 64, color: primaryColor),
+            MyLinkLogo(size: 64, color: primaryColor),
             const SizedBox(height: 16),
             Text(
               text,
