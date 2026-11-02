@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mylink/l10n/app_localizations.dart';
 import 'package:mylink/screens/about_screen.dart';
 import 'package:mylink/theme/app_theme.dart';
 import 'package:mylink/widgets/my_link_logo.dart';
@@ -10,8 +11,11 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  Widget buildSubject() {
+  Widget buildSubject({Locale locale = const Locale('pt', 'BR')}) {
     return MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       home: const AboutScreen(),
@@ -47,18 +51,19 @@ void main() {
       expect(find.text('Política de Privacidade'), findsOneWidget);
     });
 
-    testWidgets('tapping Política de Privacidade does not throw unhandled error', (
-      tester,
-    ) async {
-      await tester.pumpWidget(buildSubject());
-      await tester.pumpAndSettle();
+    testWidgets(
+      'tapping Política de Privacidade does not throw unhandled error',
+      (tester) async {
+        await tester.pumpWidget(buildSubject());
+        await tester.pumpAndSettle();
 
-      final privacyTile = find.text('Política de Privacidade');
-      expect(privacyTile, findsOneWidget);
+        final privacyTile = find.text('Política de Privacidade');
+        expect(privacyTile, findsOneWidget);
 
-      await tester.tap(privacyTile);
-      await tester.pump();
-      // Should not throw unhandled exception
-    });
+        await tester.tap(privacyTile);
+        await tester.pump();
+        // Should not throw unhandled exception
+      },
+    );
   });
 }

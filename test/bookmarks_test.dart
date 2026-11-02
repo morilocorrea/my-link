@@ -50,8 +50,11 @@ void main() {
     },
   );
 
-  test('starts with 21 observed categories and no invented bookmarks', () {
-    expect(library.state.categories.length, 21);
+  test('starts with 4 default categories and no invented bookmarks', () {
+    expect(
+      library.state.categories,
+      equals(['Audio', 'Blog', 'Video', 'Youtube']),
+    );
     expect(library.state.links, isEmpty);
   });
 
@@ -61,7 +64,7 @@ void main() {
       await library.save(
         title: 'Example',
         url: 'example.com',
-        category: 'Study',
+        category: 'Audio',
       );
       final initial = library.state.links.single;
       await library.toggleFavorite(initial.id);
@@ -69,7 +72,7 @@ void main() {
         id: initial.id,
         title: 'Edited',
         url: 'https://example.org',
-        category: 'News',
+        category: 'Video',
       );
       final reloaded = BookmarkLibrary(storage);
       await reloaded.load();
@@ -78,7 +81,7 @@ void main() {
       expect(link.createdAt, initial.createdAt);
       expect(link.favorite, isTrue);
       expect(link.title, 'Edited');
-      expect(link.category, 'News');
+      expect(link.category, 'Video');
       reloaded.dispose();
       await library.delete(initial.id);
       expect(library.state.links, isEmpty);
@@ -87,8 +90,8 @@ void main() {
 
   test('serialized concurrent mutations never lose changes', () async {
     await Future.wait([
-      library.save(title: 'A', url: 'a.com', category: 'Study'),
-      library.save(title: 'B', url: 'b.com', category: 'News'),
+      library.save(title: 'A', url: 'a.com', category: 'Audio'),
+      library.save(title: 'B', url: 'b.com', category: 'Video'),
       library.addCategory('Personal'),
     ]);
     expect(library.state.links.length, 2);
@@ -108,17 +111,17 @@ void main() {
   });
 
   test('category validation and confirmed cascade contract', () async {
-    await expectLater(library.addCategory('study'), throwsFormatException);
+    await expectLater(library.addCategory('audio'), throwsFormatException);
     await expectLater(library.addCategory('  '), throwsFormatException);
     await expectLater(
       library.save(title: 'A', url: 'a.com', category: 'Missing'),
       throwsFormatException,
     );
-    await library.save(title: 'A', url: 'a.com', category: 'Study');
-    await library.save(title: 'B', url: 'b.com', category: 'News');
-    await library.deleteCategory('Study');
-    expect(library.state.links.single.category, 'News');
-    expect(library.state.categories, isNot(contains('Study')));
+    await library.save(title: 'A', url: 'a.com', category: 'Audio');
+    await library.save(title: 'B', url: 'b.com', category: 'Video');
+    await library.deleteCategory('Audio');
+    expect(library.state.links.single.category, 'Video');
+    expect(library.state.categories, isNot(contains('Audio')));
   });
 
   test('search, categories, favorites and all four sorting modes', () async {
@@ -131,14 +134,14 @@ void main() {
             id: 'older',
             title: 'Zebra',
             url: 'https://z.com',
-            category: 'Study',
+            category: 'Audio',
             createdAt: DateTime.utc(2026, 1, 1),
           ),
           Bookmark(
             id: 'newer',
             title: 'Alpha',
             url: 'https://a.com',
-            category: 'News',
+            category: 'Video',
             createdAt: DateTime.utc(2026, 1, 2),
           ),
         ],
@@ -152,8 +155,8 @@ void main() {
     expect(library.query().first.title, 'Alpha');
     await library.setSort(LinkSort.za);
     expect(library.query().first.title, 'Zebra');
-    expect(library.query(text: 'NEWS').single.title, 'Alpha');
-    expect(library.query(category: 'Study').single.title, 'Zebra');
+    expect(library.query(text: 'VIDEO').single.title, 'Alpha');
+    expect(library.query(category: 'Audio').single.title, 'Zebra');
     await library.toggleFavorite(library.state.links.first.id);
     expect(library.query(favorites: true).single.title, 'Zebra');
     expect(library.query(timeline: true).first.title, 'Alpha');
@@ -166,7 +169,7 @@ void main() {
       await library.save(
         title: title,
         url: 'https://a.com?q=x,y',
-        category: 'Study',
+        category: 'Audio',
       );
       await library.toggleFavorite(library.state.links.single.id);
       final destination = BookmarkLibrary(MemoryStorage());
@@ -191,7 +194,7 @@ void main() {
   );
 
   test('invalid CSV is atomic and preserves existing data', () async {
-    await library.save(title: 'A', url: 'a.com', category: 'Study');
+    await library.save(title: 'A', url: 'a.com', category: 'Audio');
     final before = storage.value;
     await expectLater(
       library.importCsv(

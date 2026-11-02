@@ -66,7 +66,10 @@ void main() {
     testWidgets(
       'navigating to Settings from drawer updates theme dynamically',
       (tester) async {
-        final app = MyLinkApp(library: library);
+        final app = MyLinkApp(
+          library: library,
+          locale: const Locale('pt', 'BR'),
+        );
         await tester.pumpWidget(app);
         await tester.pumpAndSettle();
 
@@ -81,7 +84,7 @@ void main() {
         await tester.pumpAndSettle();
 
         // Scroll and find Settings item in drawer
-        final settingsFinder = find.text('Settings');
+        final settingsFinder = find.text('Configurações');
         await tester.scrollUntilVisible(
           settingsFinder,
           100,
@@ -181,7 +184,7 @@ void main() {
     testWidgets('Search bar has 48px height and 14px border radius', (
       tester,
     ) async {
-      final app = MyLinkApp(library: library);
+      final app = MyLinkApp(library: library, locale: const Locale('pt', 'BR'));
       await tester.pumpWidget(app);
       await tester.pumpAndSettle();
 

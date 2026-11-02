@@ -7,29 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/csv_config.dart';
 
-const defaultCategories = [
-  'Articles',
-  'Application',
-  'Blog',
-  'Business',
-  'Drawing',
-  'Entertainment',
-  'Food',
-  'Game',
-  'Health',
-  'Kids',
-  'Movies',
-  'Motivational',
-  'Music',
-  'News',
-  'Others',
-  'Study',
-  'Stocks',
-  'Sports',
-  'Technology',
-  'Video',
-  'Youtube',
-];
+const defaultCategories = ['Audio', 'Blog', 'Video', 'Youtube'];
 
 enum LinkSort { newest, oldest, az, za }
 

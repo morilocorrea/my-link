@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../bookmarks.dart';
+import '../l10n/app_localizations.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -21,32 +22,35 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Ler QR Code')),
-    body: MobileScanner(
-      controller: _controller,
-      errorBuilder: (context, error) => Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            error.errorCode == MobileScannerErrorCode.permissionDenied
-                ? 'Permita o acesso à câmera nas configurações do dispositivo e tente novamente.'
-                : 'Câmera indisponível. Você pode adicionar o link manualmente.',
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.scanQrTitle)),
+      body: MobileScanner(
+        controller: _controller,
+        errorBuilder: (context, error) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              error.errorCode == MobileScannerErrorCode.permissionDenied
+                  ? l10n.cameraPermissionError
+                  : l10n.cameraUnavailableError,
+            ),
           ),
         ),
-      ),
-      onDetect: (capture) {
-        if (_completed) return;
-        for (final barcode in capture.barcodes) {
-          if (barcode.rawValue != null) {
-            _completed = true;
-            Navigator.pop(context, barcode.rawValue);
-            break;
+        onDetect: (capture) {
+          if (_completed) return;
+          for (final barcode in capture.barcodes) {
+            if (barcode.rawValue != null) {
+              _completed = true;
+              Navigator.pop(context, barcode.rawValue);
+              break;
+            }
           }
-        }
-      },
-    ),
-  );
+        },
+      ),
+    );
+  }
 }
 
 class BrowserScreen extends StatefulWidget {
@@ -59,7 +63,7 @@ class BrowserScreen extends StatefulWidget {
 class _BrowserScreenState extends State<BrowserScreen> {
   late final WebViewController _controller;
   int _progress = 0;
-  String? _error;
+  bool _hasError = false;
   @override
   void initState() {
     super.initState();
@@ -72,11 +76,11 @@ class _BrowserScreenState extends State<BrowserScreen> {
             if (mounted) setState(() => _progress = value);
           },
           onPageStarted: (_) {
-            if (mounted) setState(() => _error = null);
+            if (mounted) setState(() => _hasError = false);
           },
           onWebResourceError: (error) {
             if (mounted && error.isForMainFrame != false) {
-              setState(() => _error = 'Não foi possível carregar a página.');
+              setState(() => _hasError = true);
             }
           },
           onNavigationRequest: (request) {
@@ -93,68 +97,70 @@ class _BrowserScreenState extends State<BrowserScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
-    canPop: false,
-    onPopInvokedWithResult: (didPop, result) async {
-      if (didPop) return;
-      if (await _controller.canGoBack()) {
-        await _controller.goBack();
-      } else if (context.mounted) {
-        Navigator.pop(context);
-      }
-    },
-    child: Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: [
-          IconButton(
-            tooltip: 'Recarregar',
-            onPressed: () => _controller.reload(),
-            icon: const Icon(Icons.refresh),
-          ),
-          IconButton(
-            tooltip: 'Abrir externamente',
-            icon: const Icon(Icons.open_in_new),
-            onPressed: () async {
-              try {
-                final current = normalizeUrl(
-                  await _controller.currentUrl() ?? widget.url,
-                );
-                if (!await launchUrl(
-                  Uri.parse(current),
-                  mode: LaunchMode.externalApplication,
-                )) {
-                  throw StateError('Launch failed');
-                }
-              } catch (_) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Não foi possível abrir o navegador.'),
-                    ),
-                  );
-                }
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (_progress < 100) LinearProgressIndicator(value: _progress / 100),
-          if (_error != null)
-            MaterialBanner(
-              content: Text(_error!),
-              actions: [
-                TextButton(
-                  onPressed: () => _controller.reload(),
-                  child: const Text('Tentar novamente'),
-                ),
-              ],
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        if (await _controller.canGoBack()) {
+          await _controller.goBack();
+        } else if (context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: [
+            IconButton(
+              tooltip: l10n.reloadTooltip,
+              onPressed: () => _controller.reload(),
+              icon: const Icon(Icons.refresh),
             ),
-          Expanded(child: WebViewWidget(controller: _controller)),
-        ],
+            IconButton(
+              tooltip: l10n.openExternalTooltip,
+              icon: const Icon(Icons.open_in_new),
+              onPressed: () async {
+                try {
+                  final current = normalizeUrl(
+                    await _controller.currentUrl() ?? widget.url,
+                  );
+                  if (!await launchUrl(
+                    Uri.parse(current),
+                    mode: LaunchMode.externalApplication,
+                  )) {
+                    throw StateError('Launch failed');
+                  }
+                } catch (_) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.openBrowserError)),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            if (_progress < 100)
+              LinearProgressIndicator(value: _progress / 100),
+            if (_hasError)
+              MaterialBanner(
+                content: Text(l10n.pageLoadError),
+                actions: [
+                  TextButton(
+                    onPressed: () => _controller.reload(),
+                    child: Text(l10n.tryAgain),
+                  ),
+                ],
+              ),
+            Expanded(child: WebViewWidget(controller: _controller)),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../bookmarks.dart';
 import '../controllers/google_drive_controller.dart';
+import '../l10n/app_localizations.dart';
 import '../services/drive_access_service.dart';
 import '../services/google_connection.dart';
 import '../services/google_oauth_config.dart';
@@ -20,9 +21,6 @@ import '../widgets/my_link_logo.dart';
 import 'google_drive_screen.dart';
 import 'settings_screen.dart';
 import 'web_tools.dart';
-
-const _sortLabels = ['New First', 'Old First', 'A to Z', 'Z to A'];
-const _titles = ['Home', 'Category', 'TimeLine', 'Favorite'];
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({
@@ -45,6 +43,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
   final _searchController = TextEditingController();
   StreamSubscription<List<SharedMediaFile>>? _subscription;
 
+  List<String> _getTitles(AppLocalizations l10n) => [
+    l10n.tabHome,
+    l10n.tabCategory,
+    l10n.tabTimeLine,
+    l10n.tabFavorite,
+  ];
+
+  String _getSortLabel(AppLocalizations l10n, LinkSort sort) => switch (sort) {
+    LinkSort.newest => l10n.sortNewest,
+    LinkSort.oldest => l10n.sortOldest,
+    LinkSort.az => l10n.sortAz,
+    LinkSort.za => l10n.sortZa,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -52,8 +64,15 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final receiver = ReceiveSharingIntent.instance;
       _subscription = receiver.getMediaStream().listen(
         _receive,
-        onError: (Object e) =>
-            _message('Não foi possível receber o compartilhamento.'),
+        onError: (Object e) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context);
+            _message(
+              l10n?.shareReceiveError ??
+                  'Não foi possível receber o compartilhamento.',
+            );
+          }
+        },
       );
       receiver
           .getInitialMedia()
@@ -62,7 +81,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
             return receiver.reset();
           })
           .catchError((Object e) {
-            _message('Não foi possível ler o link recebido.');
+            if (mounted) {
+              final l10n = AppLocalizations.of(context);
+              _message(
+                l10n?.shareReadError ?? 'Não foi possível ler o link recebido.',
+              );
+            }
           });
     }
   }
@@ -71,7 +95,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (!mounted || items.isEmpty) return;
     final url = extractSharedUrl(items.map((e) => e.path).join(' '));
     if (url == null) {
-      _message('Nenhuma URL HTTP/HTTPS encontrada.');
+      final l10n = AppLocalizations.of(context);
+      _message(l10n?.noValidUrlFound ?? 'Nenhuma URL HTTP/HTTPS encontrada.');
       return;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -97,38 +122,43 @@ class _LibraryScreenState extends State<LibraryScreen> {
       await action();
     } catch (e, stack) {
       if (kDebugMode) debugPrint('Bookmark action failed: $e\n$stack');
-      _message(
-        e is FormatException
-            ? e.message
-            : 'Não foi possível concluir. Tente novamente.',
-      );
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        _message(
+          e is FormatException
+              ? e.message
+              : (l10n?.unexpectedError ??
+                    'Não foi possível concluir. Tente novamente.'),
+        );
+      }
     }
   }
 
-  Future<bool> _confirm(String title, String message) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+  Future<bool> _confirm(String title, String message) async {
+    final l10n = AppLocalizations.of(context)!;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.cancel),
           ),
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirmar'),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.confirm),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
 
   Future<void> _edit({Bookmark? link, String? initialUrl}) async {
+    final l10n = AppLocalizations.of(context)!;
     final title = TextEditingController(text: link?.title);
     final url = TextEditingController(text: link?.url ?? initialUrl);
     var selected =
@@ -146,7 +176,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: Text(link == null ? 'Adicionar URL' : 'Editar link'),
+          title: Text(
+            link == null ? l10n.dialogAddUrlTitle : l10n.dialogEditUrlTitle,
+          ),
           content: SizedBox(
             width: 400,
             child: Form(
@@ -157,16 +189,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   children: [
                     TextFormField(
                       controller: title,
-                      decoration: const InputDecoration(labelText: 'Título'),
+                      decoration: InputDecoration(labelText: l10n.inputTitle),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: url,
                       keyboardType: TextInputType.url,
                       decoration: InputDecoration(
-                        labelText: 'URL',
+                        labelText: l10n.inputUrl,
                         suffixIcon: IconButton(
-                          tooltip: 'Colar link',
+                          tooltip: l10n.pasteLinkTooltip,
                           onPressed: () async {
                             final data = await Clipboard.getData(
                               Clipboard.kTextPlain,
@@ -191,7 +223,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: selected,
                       isExpanded: true,
-                      decoration: const InputDecoration(labelText: 'Categoria'),
+                      decoration: InputDecoration(
+                        labelText: l10n.inputCategory,
+                      ),
                       items: library.state.categories
                           .map(
                             (c) => DropdownMenuItem(
@@ -201,9 +235,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           )
                           .toList(),
                       onChanged: (value) => selected = value,
-                      validator: (value) => value == null
-                          ? 'Crie ou selecione uma categoria.'
-                          : null,
+                      validator: (value) =>
+                          value == null ? l10n.selectCategoryError : null,
                     ),
                     TextButton.icon(
                       onPressed: () async {
@@ -211,7 +244,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         if (dialogContext.mounted) update(() {});
                       },
                       icon: const Icon(Icons.create_new_folder_outlined),
-                      label: const Text('Nova categoria'),
+                      label: Text(l10n.newCategory),
                     ),
                     if (error != null)
                       Text(
@@ -228,7 +261,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           actions: [
             TextButton(
               onPressed: busy ? null : () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: busy
@@ -253,12 +286,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             busy = false;
                             error = e is FormatException
                                 ? e.message
-                                : 'Falha ao salvar os dados.';
+                                : l10n.saveDataError;
                           });
                         }
                       }
                     },
-              child: Text(busy ? 'Salvando…' : 'Salvar'),
+              child: Text(busy ? l10n.saving : l10n.save),
             ),
           ],
         ),
@@ -271,6 +304,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _addCategory() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     String? error;
     var busy = false;
@@ -281,17 +315,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('Nova categoria'),
+          title: Text(l10n.dialogNewCategoryTitle),
           content: TextField(
             controller: controller,
             autofocus: true,
             maxLength: 80,
-            decoration: InputDecoration(labelText: 'Nome', errorText: error),
+            decoration: InputDecoration(
+              labelText: l10n.inputName,
+              errorText: error,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: busy ? null : () => Navigator.pop(dialogContext),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: busy
@@ -307,12 +344,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             busy = false;
                             error = e is FormatException
                                 ? e.message
-                                : 'Não foi possível salvar.';
+                                : l10n.saveDataError;
                           });
                         }
                       }
                     },
-              child: const Text('Adicionar'),
+              child: Text(l10n.add),
             ),
           ],
         ),
@@ -323,13 +360,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _scan() async {
+    final l10n = AppLocalizations.of(context)!;
     final value = await Navigator.of(
       context,
     ).push<String>(MaterialPageRoute(builder: (_) => const ScanScreen()));
     if (value != null && mounted) {
       final url = extractSharedUrl(value);
       if (url == null) {
-        _message('O QR Code não contém uma URL HTTP/HTTPS.');
+        _message(l10n.qrNoHttpUrl);
         return;
       }
       await _edit(initialUrl: url);
@@ -337,11 +375,12 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _qr(String url) async {
+    final l10n = AppLocalizations.of(context)!;
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('QR Code'),
+        title: Text(l10n.qrCode),
         content: SizedBox(
           width: 250,
           child: Column(
@@ -373,7 +412,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -381,6 +420,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _generateQr() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     String? error;
     final url = await showDialog<String>(
@@ -390,15 +430,18 @@ class _LibraryScreenState extends State<LibraryScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text('Gerar QR Code'),
+          title: Text(l10n.generateQrCode),
           content: TextField(
             controller: controller,
-            decoration: InputDecoration(labelText: 'URL', errorText: error),
+            decoration: InputDecoration(
+              labelText: l10n.inputUrl,
+              errorText: error,
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: () {
@@ -408,7 +451,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   update(() => error = e.message);
                 }
               },
-              child: const Text('Gerar'),
+              child: Text(l10n.generate),
             ),
           ],
         ),
@@ -420,24 +463,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   Future<void> _export() => _run(() async {
+    final l10n = AppLocalizations.of(context)!;
     if (library.state.links.isEmpty) {
-      _message('Nenhum link disponível para exportar.');
+      _message(l10n.noLinksToExport);
       return;
     }
     final result = await FilePicker.platform.saveFile(
-      dialogTitle: 'Exportar links',
+      dialogTitle: l10n.exportLinksDialogTitle,
       fileName: 'links.csv',
       type: FileType.custom,
       allowedExtensions: ['csv'],
       bytes: Uint8List.fromList(utf8.encode(library.exportCsv())),
     );
-    if (result != null) _message('CSV exportado.');
+    if (result != null) _message(l10n.csvExported);
   });
 
   Future<void> _import() async {
     if (_importing) return;
     setState(() => _importing = true);
     await _run(() async {
+      final l10n = AppLocalizations.of(context)!;
       final picked = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
@@ -447,26 +492,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final file = picked.files.single;
       if (file.size > library.csvConfig.maxCsvSizeBytes) {
         throw FormatException(
-          'O CSV deve ter no máximo ${library.csvConfig.maxCsvSizeMb} MB.',
+          l10n.csvSizeLimitError(library.csvConfig.maxCsvSizeMb),
         );
       }
       final bytes = file.bytes;
       if (bytes == null) {
-        throw const FormatException('Não foi possível ler o arquivo.');
+        throw FormatException(l10n.fileReadError);
       }
       if (await _confirm(
-        'Importar CSV?',
-        'Os links serão adicionados à biblioteca. '
-            'Importar o mesmo arquivo novamente pode criar duplicatas.',
+        l10n.importCsvConfirmTitle,
+        l10n.importCsvConfirmMessage,
       )) {
         await library.importCsv(utf8.decode(bytes));
-        _message('Importação concluída.');
+        _message(l10n.importSuccess);
       }
     });
     if (mounted) setState(() => _importing = false);
   }
 
   Future<void> _open(Bookmark link, {bool external = false}) => _run(() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!external && defaultTargetPlatform == TargetPlatform.android) {
       await Navigator.of(context).push<void>(
         MaterialPageRoute(
@@ -477,15 +522,16 @@ class _LibraryScreenState extends State<LibraryScreen> {
       Uri.parse(link.url),
       mode: LaunchMode.externalApplication,
     )) {
-      throw const FormatException('Não foi possível abrir o navegador.');
+      throw FormatException(l10n.openBrowserError);
     }
   });
 
   Future<void> _action(String action, Bookmark link) async {
+    final l10n = AppLocalizations.of(context)!;
     switch (action) {
       case 'copy':
         await Clipboard.setData(ClipboardData(text: link.url));
-        _message('Link copiado.');
+        _message(l10n.linkCopied);
       case 'edit':
         await _edit(link: link);
       case 'qr':
@@ -507,8 +553,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
         });
       case 'delete':
         if (await _confirm(
-          'Excluir link?',
-          'Esta ação não pode ser desfeita.',
+          l10n.deleteLinkConfirmTitle,
+          l10n.deleteLinkConfirmMessage,
         )) {
           await _run(() => library.delete(link.id));
         }
@@ -574,9 +620,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _drawer() {
+  Widget _drawer(AppLocalizations l10n) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final titles = _getTitles(l10n);
 
     return Drawer(
       backgroundColor: AppColors.surfaceElevatedOf(context),
@@ -602,7 +649,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'MyLink',
+                    l10n.appTitle,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimaryOf(context),
@@ -610,7 +657,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Seus links, sempre à mão',
+                    l10n.appSlogan,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondaryOf(context),
                     ),
@@ -620,7 +667,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             Divider(color: AppColors.dividerOf(context), height: 1),
             const SizedBox(height: 8),
-            for (var i = 0; i < _titles.length; i++)
+            for (var i = 0; i < titles.length; i++)
               Container(
                 height: 48,
                 margin: const EdgeInsets.symmetric(vertical: 2),
@@ -641,7 +688,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     title: Text(
-                      _titles[i],
+                      titles[i],
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: _tab == i
                             ? FontWeight.w600
@@ -665,7 +712,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             const SizedBox(height: 8),
             _drawerTile(
               icon: Icons.add_link,
-              title: 'Adicionar link',
+              title: l10n.drawerAddLink,
               onTap: () {
                 Navigator.pop(context);
                 _edit();
@@ -673,7 +720,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             _drawerTile(
               icon: Icons.qr_code_scanner,
-              title: 'Ler QR Code',
+              title: l10n.drawerScanQr,
               onTap: () {
                 Navigator.pop(context);
                 _scan();
@@ -681,7 +728,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             _drawerTile(
               icon: Icons.qr_code,
-              title: 'Gerar QR Code',
+              title: l10n.drawerGenerateQr,
               onTap: () {
                 Navigator.pop(context);
                 _generateQr();
@@ -689,7 +736,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             _drawerTile(
               icon: Icons.file_upload_outlined,
-              title: 'Exportar CSV',
+              title: l10n.drawerExportCsv,
               onTap: () {
                 Navigator.pop(context);
                 _export();
@@ -697,7 +744,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             _drawerTile(
               icon: Icons.file_download_outlined,
-              title: _importing ? 'Importando…' : 'Importar CSV',
+              title: _importing
+                  ? l10n.drawerImportingCsv
+                  : l10n.drawerImportCsv,
               enabled: !_importing,
               onTap: () {
                 Navigator.pop(context);
@@ -706,8 +755,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
             ),
             _drawerTile(
               icon: Icons.cloud_outlined,
-              title: 'Google Drive',
-              subtitle: 'Backup e restauração no Google Drive',
+              title: l10n.drawerGoogleDrive,
+              subtitle: l10n.drawerGoogleDriveSubtitle,
               onTap: () {
                 Navigator.pop(context);
                 final controller =
@@ -733,7 +782,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
             const SizedBox(height: 8),
             _drawerTile(
               icon: Icons.settings_outlined,
-              title: 'Settings',
+              title: l10n.drawerSettings,
               onTap: () {
                 Navigator.pop(context);
                 Navigator.of(context).push<void>(
@@ -749,7 +798,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _categories() {
+  Widget _categories(AppLocalizations l10n) {
     final categories =
         library.state.categories
             .where((c) => c.toLowerCase().contains(_search.toLowerCase()))
@@ -757,9 +806,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     if (categories.isEmpty) {
       return _empty(
-        'Nenhuma categoria encontrada.',
+        l10n.emptyCategories,
         action: _addCategory,
-        label: 'Criar categoria',
+        label: l10n.createCategory,
       );
     }
     return LayoutBuilder(
@@ -815,7 +864,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             color: AppColors.primaryOf(context),
                           ),
                           IconButton(
-                            tooltip: 'Excluir categoria',
+                            tooltip: l10n.deleteCategoryTooltip,
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(
@@ -829,8 +878,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             ),
                             onPressed: () async {
                               if (await _confirm(
-                                'Excluir $category?',
-                                '$count links desta categoria também serão excluídos.',
+                                l10n.deleteCategoryConfirmTitle(category),
+                                l10n.deleteCategoryConfirmMessage(count),
                               )) {
                                 await _run(
                                   () => library.deleteCategory(category),
@@ -857,7 +906,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '$count links',
+                            l10n.linksCount(count),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
                                   color: AppColors.iconMutedOf(context),
@@ -920,7 +969,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _links() {
+  Widget _links(AppLocalizations l10n) {
     final links = library.query(
       text: _search,
       category: _category,
@@ -930,10 +979,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
     if (links.isEmpty) {
       return _empty(
         _search.isNotEmpty
-            ? 'Nenhum resultado para a busca.'
+            ? l10n.emptyNoResults
             : _tab == 3
-            ? 'Nenhum link favorito.'
-            : 'Você ainda não adicionou URLs aqui.',
+            ? l10n.emptyFavorites
+            : l10n.emptyHome,
+        label: l10n.addUrl,
       );
     }
     return ListView.builder(
@@ -1046,8 +1096,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       ),
                       IconButton(
                         tooltip: link.favorite
-                            ? 'Remover dos favoritos'
-                            : 'Marcar favorito',
+                            ? l10n.removeFavoriteTooltip
+                            : l10n.markFavoriteTooltip,
                         icon: Icon(
                           link.favorite
                               ? Icons.favorite_rounded
@@ -1060,33 +1110,33 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             _run(() => library.toggleFavorite(link.id)),
                       ),
                       PopupMenuButton<String>(
-                        tooltip: 'Opções do link',
+                        tooltip: l10n.linkOptionsTooltip,
                         icon: Icon(
                           Icons.more_vert_rounded,
                           color: AppColors.iconMutedOf(context),
                         ),
                         onSelected: (a) => _action(a, link),
-                        itemBuilder: (_) => const [
+                        itemBuilder: (_) => [
                           PopupMenuItem(
                             value: 'copy',
-                            child: Text('Copiar URL'),
+                            child: Text(l10n.copyUrl),
                           ),
-                          PopupMenuItem(value: 'edit', child: Text('Editar')),
+                          PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
                           PopupMenuItem(
                             value: 'share',
-                            child: Text('Compartilhar URL'),
+                            child: Text(l10n.shareUrl),
                           ),
                           PopupMenuItem(
                             value: 'qr',
-                            child: Text('Gerar QR Code'),
+                            child: Text(l10n.generateQrCode),
                           ),
                           PopupMenuItem(
                             value: 'browser',
-                            child: Text('Abrir no navegador externo'),
+                            child: Text(l10n.openInExternalBrowser),
                           ),
                           PopupMenuItem(
                             value: 'delete',
-                            child: Text('Excluir'),
+                            child: Text(l10n.delete),
                           ),
                         ],
                       ),
@@ -1102,192 +1152,201 @@ class _LibraryScreenState extends State<LibraryScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(_category ?? _titles[_tab]),
-      leading: _category == null
-          ? null
-          : IconButton(
-              tooltip: 'Voltar às categorias',
-              onPressed: () => setState(() {
-                _category = null;
-                _search = '';
-                _searchController.clear();
-              }),
-              icon: const Icon(Icons.arrow_back),
-            ),
-      actions: [
-        PopupMenuButton<LinkSort>(
-          tooltip: 'Ordenar links',
-          icon: const Icon(Icons.sort),
-          onSelected: (v) => _run(() => library.setSort(v)),
-          itemBuilder: (_) => [
-            for (final sort in LinkSort.values)
-              CheckedPopupMenuItem(
-                value: sort,
-                checked: sort == library.state.sort,
-                child: Text(_sortLabels[sort.index]),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final titles = _getTitles(l10n);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_category ?? titles[_tab]),
+        leading: _category == null
+            ? null
+            : IconButton(
+                tooltip: l10n.backToCategories,
+                onPressed: () => setState(() {
+                  _category = null;
+                  _search = '';
+                  _searchController.clear();
+                }),
+                icon: const Icon(Icons.arrow_back),
               ),
-          ],
-        ),
-        IconButton(
-          tooltip: 'Ler QR Code',
-          onPressed: _scan,
-          icon: const Icon(Icons.qr_code_scanner),
-        ),
-        const SizedBox(width: 8),
-      ],
-    ),
-    drawer: _drawer(),
-    body: SafeArea(
-      top: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 960),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+        actions: [
+          PopupMenuButton<LinkSort>(
+            tooltip: l10n.sortTooltip,
+            icon: const Icon(Icons.sort),
+            onSelected: (v) => _run(() => library.setSort(v)),
+            itemBuilder: (_) => [
+              for (final sort in LinkSort.values)
+                CheckedPopupMenuItem(
+                  value: sort,
+                  checked: sort == library.state.sort,
+                  child: Text(_getSortLabel(l10n, sort)),
                 ),
-                child: SizedBox(
-                  height: 48,
-                  child: TextField(
-                    key: ValueKey('search-$_tab-$_category'),
-                    controller: _searchController,
-                    onChanged: (value) => setState(() => _search = value),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textPrimaryOf(context),
-                    ),
-                    textAlignVertical: TextAlignVertical.center,
-                    decoration: InputDecoration(
-                      isDense: true,
-                      filled: true,
-                      fillColor: AppColors.surfaceSubtleOf(context),
-                      hintText: 'Buscar título, URL ou categoria…',
-                      hintStyle: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.textSecondaryOf(context)),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        size: 20,
-                        color: AppColors.textSecondaryOf(context),
+            ],
+          ),
+          IconButton(
+            tooltip: l10n.drawerScanQr,
+            onPressed: _scan,
+            icon: const Icon(Icons.qr_code_scanner),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      drawer: _drawer(l10n),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 960),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: SizedBox(
+                    height: 48,
+                    child: TextField(
+                      key: ValueKey('search-$_tab-$_category'),
+                      controller: _searchController,
+                      onChanged: (value) => setState(() => _search = value),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textPrimaryOf(context),
                       ),
-                      prefixIconConstraints: const BoxConstraints(
-                        minWidth: 44,
-                        minHeight: 20,
-                      ),
-                      suffixIcon: _search.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: AppColors.surfaceSubtleOf(context),
+                        hintText: l10n.searchHint,
+                        hintStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(
                               color: AppColors.textSecondaryOf(context),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() => _search = '');
-                              },
-                            )
-                          : null,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: AppColors.primaryOf(context),
-                          width: 1.5,
+                            ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          size: 20,
+                          color: AppColors.textSecondaryOf(context),
+                        ),
+                        prefixIconConstraints: const BoxConstraints(
+                          minWidth: 44,
+                          minHeight: 20,
+                        ),
+                        suffixIcon: _search.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                color: AppColors.textSecondaryOf(context),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() => _search = '');
+                                },
+                              )
+                            : null,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: AppColors.primaryOf(context),
+                            width: 1.5,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: _tab == 1 && _category == null
-                    ? _categories()
-                    : _links(),
-              ),
-            ],
+                Expanded(
+                  child: _tab == 1 && _category == null
+                      ? _categories(l10n)
+                      : _links(l10n),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-    floatingActionButton: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color:
-                (Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black
-                        : const Color(0xFF1E88E5))
-                    .withValues(alpha: 0.22),
-            offset: const Offset(0, 4),
-            blurRadius: 14,
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color:
+                  (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.black
+                          : const Color(0xFF1E88E5))
+                      .withValues(alpha: 0.22),
+              offset: const Offset(0, 4),
+              blurRadius: 14,
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          elevation: 0,
+          highlightElevation: 0,
+          hoverElevation: 0,
+          focusElevation: 0,
+          tooltip: _tab == 1 && _category == null
+              ? l10n.createCategory
+              : l10n.addUrl,
+          onPressed: _tab == 1 && _category == null
+              ? _addCategory
+              : () => _edit(),
+          backgroundColor: AppColors.secondaryOf(context),
+          foregroundColor: AppColors.primaryOf(context),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-        ],
-      ),
-      child: FloatingActionButton(
-        elevation: 0,
-        highlightElevation: 0,
-        hoverElevation: 0,
-        focusElevation: 0,
-        tooltip: _tab == 1 && _category == null
-            ? 'Nova categoria'
-            : 'Adicionar URL',
-        onPressed: _tab == 1 && _category == null
-            ? _addCategory
-            : () => _edit(),
-        backgroundColor: AppColors.secondaryOf(context),
-        foregroundColor: AppColors.primaryOf(context),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add_rounded, size: 24),
-      ),
-    ),
-    bottomNavigationBar: Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevatedOf(context),
-        border: Border(
-          top: BorderSide(color: AppColors.dividerOf(context), width: 1),
+          child: const Icon(Icons.add_rounded, size: 24),
         ),
       ),
-      child: NavigationBar(
-        height: 64,
-        selectedIndex: _tab,
-        onDestinationSelected: (tab) {
-          _selectTab(tab);
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surfaceElevatedOf(context),
+          border: Border(
+            top: BorderSide(color: AppColors.dividerOf(context), width: 1),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.grid_view_outlined),
-            selectedIcon: Icon(Icons.grid_view_rounded),
-            label: 'Category',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.access_time_outlined),
-            selectedIcon: Icon(Icons.access_time_filled_rounded),
-            label: 'TimeLine',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.favorite_outline_rounded),
-            selectedIcon: Icon(Icons.favorite_rounded),
-            label: 'Favorite',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          height: 64,
+          selectedIndex: _tab,
+          onDestinationSelected: (tab) {
+            _selectTab(tab);
+          },
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.home_outlined),
+              selectedIcon: const Icon(Icons.home_rounded),
+              label: titles[0],
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.grid_view_outlined),
+              selectedIcon: const Icon(Icons.grid_view_rounded),
+              label: titles[1],
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.access_time_outlined),
+              selectedIcon: const Icon(Icons.access_time_filled_rounded),
+              label: titles[2],
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.favorite_outline_rounded),
+              selectedIcon: const Icon(Icons.favorite_rounded),
+              label: titles[3],
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }

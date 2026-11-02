@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../bookmarks.dart';
 import '../controllers/google_drive_controller.dart';
+import '../l10n/app_localizations.dart';
 import '../services/google_connection.dart';
 import '../theme/app_theme.dart';
 
@@ -28,14 +29,19 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
     });
   }
 
-  String _formatDateTime(DateTime dt) {
+  String _formatDateTime(BuildContext context, DateTime dt) {
     final local = dt.toLocal();
+    final locale = Localizations.localeOf(context).toString();
+    final isPt = locale.toLowerCase().startsWith('pt');
     final d = local.day.toString().padLeft(2, '0');
     final m = local.month.toString().padLeft(2, '0');
     final y = local.year;
     final hr = local.hour.toString().padLeft(2, '0');
     final min = local.minute.toString().padLeft(2, '0');
-    return '$d/$m/$y às $hr:$min';
+    if (isPt) {
+      return '$d/$m/$y às $hr:$min';
+    }
+    return '$m/$d/$y at $hr:$min';
   }
 
   String _formatBytes(int? bytes) {
@@ -50,6 +56,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
     required String message,
     bool isDestructive = false,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -58,7 +65,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancelar'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             style: isDestructive
@@ -68,7 +75,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                   )
                 : null,
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Confirmar'),
+            child: Text(l10n.confirm),
           ),
         ],
       ),
@@ -77,81 +84,92 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: controller,
-    builder: (context, _) => Scaffold(
-      appBar: AppBar(title: const Text('Google Drive')),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                if (!controller.isConfigured) ...[
-                  _buildConfigWarningCard(context),
-                  const SizedBox(height: 16),
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) => Scaffold(
+        appBar: AppBar(title: Text(l10n.googleDriveTitle)),
+        body: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: ListView(
+                padding: const EdgeInsets.all(20),
+                children: [
+                  if (!controller.isConfigured) ...[
+                    _buildConfigWarningCard(context, l10n),
+                    const SizedBox(height: 16),
+                  ],
+                  if (controller.errorMessage != null) ...[
+                    _buildErrorBanner(context, l10n, controller.errorMessage!),
+                    const SizedBox(height: 16),
+                  ],
+                  if (controller.statusMessage != null) ...[
+                    _buildSuccessBanner(
+                      context,
+                      l10n,
+                      controller.statusMessage!,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (controller.user == null)
+                    _buildDisconnectedView(context, l10n)
+                  else
+                    _buildConnectedView(context, l10n, controller.user!),
                 ],
-                if (controller.errorMessage != null) ...[
-                  _buildErrorBanner(context, controller.errorMessage!),
-                  const SizedBox(height: 16),
-                ],
-                if (controller.statusMessage != null) ...[
-                  _buildSuccessBanner(context, controller.statusMessage!),
-                  const SizedBox(height: 16),
-                ],
-                if (controller.user == null)
-                  _buildDisconnectedView(context)
-                else
-                  _buildConnectedView(context, controller.user!),
-              ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 
-  Widget _buildConfigWarningCard(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.errorContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            color: Theme.of(context).colorScheme.onErrorContainer,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Configuração OAuth Ausente',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onErrorContainer,
-                  ),
+  Widget _buildConfigWarningCard(BuildContext context, AppLocalizations l10n) =>
+      Card(
+        color: Theme.of(context).colorScheme.errorContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.driveConfigMissingTitle,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      l10n.driveConfigMissingMessage,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'A variável GOOGLE_SERVER_CLIENT_ID não foi informada no arquivo .env. '
-                  'Crie o arquivo a partir de .env.example para habilitar a conexão.',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onErrorContainer,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
-  Widget _buildErrorBanner(BuildContext context, String message) => Card(
+  Widget _buildErrorBanner(
+    BuildContext context,
+    AppLocalizations l10n,
+    String message,
+  ) => Card(
     color: Theme.of(context).colorScheme.errorContainer,
     child: Padding(
       padding: const EdgeInsets.all(12),
@@ -171,7 +189,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Fechar mensagem',
+            tooltip: l10n.closeMessageTooltip,
             visualDensity: VisualDensity.compact,
             icon: Icon(
               Icons.close,
@@ -185,7 +203,11 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
     ),
   );
 
-  Widget _buildSuccessBanner(BuildContext context, String message) => Card(
+  Widget _buildSuccessBanner(
+    BuildContext context,
+    AppLocalizations l10n,
+    String message,
+  ) => Card(
     color: Theme.of(context).colorScheme.primaryContainer,
     child: Padding(
       padding: const EdgeInsets.all(12),
@@ -205,7 +227,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
             ),
           ),
           IconButton(
-            tooltip: 'Fechar mensagem',
+            tooltip: l10n.closeMessageTooltip,
             visualDensity: VisualDensity.compact,
             icon: Icon(
               Icons.close,
@@ -219,50 +241,53 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
     ),
   );
 
-  Widget _buildDisconnectedView(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          Icon(
-            Icons.cloud_off_rounded,
-            size: 64,
-            color: AppColors.primaryOf(context),
+  Widget _buildDisconnectedView(BuildContext context, AppLocalizations l10n) =>
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              Icon(
+                Icons.cloud_off_rounded,
+                size: 64,
+                color: AppColors.primaryOf(context),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.connectDriveTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(l10n.connectDriveMessage, textAlign: TextAlign.center),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: (controller.isBusy || !controller.isConfigured)
+                    ? null
+                    : () => controller.signIn(),
+                icon: controller.isBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.login),
+                label: Text(
+                  controller.isBusy
+                      ? l10n.connecting
+                      : l10n.connectGoogleAccount,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Conectar ao Google Drive',
-            style: Theme.of(context).textTheme.titleLarge,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Conecte sua conta Google para autorizar o acesso aos arquivos '
-            'do Google Drive gerenciados pelo MyLink. Seus dados locais permanecem salvos no dispositivo.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          FilledButton.icon(
-            onPressed: (controller.isBusy || !controller.isConfigured)
-                ? null
-                : () => controller.signIn(),
-            icon: controller.isBusy
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.login),
-            label: Text(
-              controller.isBusy ? 'Conectando…' : 'Conectar Conta Google',
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
-  Widget _buildConnectedView(BuildContext context, GoogleUser user) {
+  Widget _buildConnectedView(
+    BuildContext context,
+    AppLocalizations l10n,
+    GoogleUser user,
+  ) {
     final driveGranted =
         controller.driveAuthStatus == DriveAuthorizationStatus.granted;
     final isAuthorizing =
@@ -330,8 +355,8 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                         ),
                         label: Text(
                           driveGranted
-                              ? 'Drive Autorizado'
-                              : 'Drive Não Autorizado',
+                              ? l10n.driveAuthorized
+                              : l10n.driveNotAuthorized,
                         ),
                         visualDensity: VisualDensity.compact,
                       ),
@@ -350,14 +375,14 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Autorização e Acesso',
+                  l10n.sectionAuthAndAccess,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   driveGranted
-                      ? 'O aplicativo tem autorização para gerenciar apenas os arquivos criados ou abertos por ele (escopo drive.file).'
-                      : 'Para que o aplicativo possa acessar arquivos no Drive, você precisa autorizar a permissão drive.file.',
+                      ? l10n.driveAuthorizedScopeInfo
+                      : l10n.driveNotAuthorizedScopeInfo,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
                 const SizedBox(height: 16),
@@ -379,7 +404,9 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                                 )
                               : const Icon(Icons.security),
                           label: Text(
-                            isAuthorizing ? 'Autorizando…' : 'Autorizar Drive',
+                            isAuthorizing
+                                ? l10n.authorizing
+                                : l10n.authorizeDrive,
                           ),
                         ),
                       )
@@ -399,9 +426,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                                 )
                               : const Icon(Icons.sync_outlined),
                           label: Text(
-                            isVerifying
-                                ? 'Verificando…'
-                                : 'Verificar Acesso à API',
+                            isVerifying ? l10n.verifying : l10n.verifyApiAccess,
                           ),
                         ),
                       ),
@@ -423,12 +448,12 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Backup no Google Drive',
+                        l10n.sectionDriveBackup,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       IconButton(
                         icon: const Icon(Icons.refresh, size: 20),
-                        tooltip: 'Atualizar informações',
+                        tooltip: l10n.refreshInfoTooltip,
                         onPressed: controller.isBusy
                             ? null
                             : () => controller.refreshBackupInfo(),
@@ -436,9 +461,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Salve todos os seus links e categorias no Google Drive ou restaure seus dados neste aparelho.',
-                  ),
+                  Text(l10n.backupDescription),
                   const SizedBox(height: 16),
                   Container(
                     width: double.infinity,
@@ -450,17 +473,17 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: isLoadingBackupInfo
-                        ? const Row(
+                        ? Row(
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                 ),
                               ),
-                              SizedBox(width: 12),
-                              Text('Consultando backup no Google Drive…'),
+                              const SizedBox(width: 12),
+                              Text(l10n.checkingBackup),
                             ],
                           )
                         : backup != null
@@ -476,15 +499,15 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Backup disponível na nuvem',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.backupAvailableCloud,
+                                      style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Último envio: ${backup.modifiedTime != null ? _formatDateTime(backup.modifiedTime!) : 'N/A'}'
+                                      '${l10n.lastUploaded(backup.modifiedTime != null ? _formatDateTime(context, backup.modifiedTime!) : 'N/A')}'
                                       '${backup.sizeBytes != null ? ' • ${_formatBytes(backup.sizeBytes)}' : ''}',
                                       style: Theme.of(
                                         context,
@@ -495,19 +518,15 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                               ),
                             ],
                           )
-                        : const Row(
+                        : Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.cloud_off_rounded,
                                 color: Colors.grey,
                                 size: 28,
                               ),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Nenhum backup encontrado no Google Drive.',
-                                ),
-                              ),
+                              const SizedBox(width: 12),
+                              Expanded(child: Text(l10n.noBackupFound)),
                             ],
                           ),
                   ),
@@ -522,10 +541,8 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                               : () async {
                                   if (widget.library!.state.links.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Nenhum link disponível para backup.',
-                                        ),
+                                      SnackBar(
+                                        content: Text(l10n.noLinksToBackup),
                                       ),
                                     );
                                     return;
@@ -543,7 +560,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                                 )
                               : const Icon(Icons.cloud_upload_outlined),
                           label: Text(
-                            isBackingUp ? 'Enviando…' : 'Fazer Backup Agora',
+                            isBackingUp ? l10n.backingUp : l10n.backupNow,
                           ),
                         ),
                       ),
@@ -555,10 +572,8 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                               ? null
                               : () async {
                                   final confirmed = await _confirm(
-                                    title: 'Restaurar Backup?',
-                                    message:
-                                        'Os links e categorias salvos no Google Drive '
-                                        'serão adicionados à sua biblioteca neste dispositivo.',
+                                    title: l10n.restoreBackupConfirmTitle,
+                                    message: l10n.restoreBackupConfirmMessage,
                                   );
                                   if (confirmed && mounted) {
                                     await controller.restore(widget.library!);
@@ -574,7 +589,7 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                                 )
                               : const Icon(Icons.cloud_download_outlined),
                           label: Text(
-                            isRestoring ? 'Restaurando…' : 'Restaurar Backup',
+                            isRestoring ? l10n.restoring : l10n.restoreBackup,
                           ),
                         ),
                       ),
@@ -594,16 +609,14 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.logout),
-                  title: const Text('Encerrar sessão'),
-                  subtitle: const Text('Desconecta a conta Google deste app.'),
+                  title: Text(l10n.signOut),
+                  subtitle: Text(l10n.signOutSubtitle),
                   onTap: controller.isBusy
                       ? null
                       : () async {
                           if (await _confirm(
-                            title: 'Encerrar sessão?',
-                            message:
-                                'Sua conta Google será desconectada do aplicativo. '
-                                'Seus links salvos localmente não serão alterados.',
+                            title: l10n.signOutConfirmTitle,
+                            message: l10n.signOutConfirmMessage,
                           )) {
                             await controller.signOut();
                           }
@@ -617,22 +630,18 @@ class _GoogleDriveScreenState extends State<GoogleDriveScreen> {
                     color: Theme.of(context).colorScheme.error,
                   ),
                   title: Text(
-                    'Revogar acesso Google',
+                    l10n.revokeAccess,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.error,
                     ),
                   ),
-                  subtitle: const Text(
-                    'Revoga as permissões concedidas pela sua conta Google a este aplicativo.',
-                  ),
+                  subtitle: Text(l10n.revokeAccessSubtitle),
                   onTap: controller.isBusy
                       ? null
                       : () async {
                           if (await _confirm(
-                            title: 'Revogar acesso?',
-                            message:
-                                'Esta ação revoga todas as autorizações do aplicativo na sua conta Google. '
-                                'Nenhum link local ou arquivo do Drive será apagado.',
+                            title: l10n.revokeAccessConfirmTitle,
+                            message: l10n.revokeAccessConfirmMessage,
                             isDestructive: true,
                           )) {
                             await controller.disconnect();

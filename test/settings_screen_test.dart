@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mylink/bookmarks.dart';
+import 'package:mylink/l10n/app_localizations.dart';
 import 'package:mylink/screens/about_screen.dart';
 import 'package:mylink/screens/settings_screen.dart';
 import 'package:mylink/theme/app_theme.dart';
@@ -23,10 +24,16 @@ void main() {
 
   tearDown(() => library.dispose());
 
-  Widget buildSubject({ThemeMode? themeMode}) {
+  Widget buildSubject({
+    ThemeMode? themeMode,
+    Locale locale = const Locale('pt', 'BR'),
+  }) {
     return ListenableBuilder(
       listenable: library,
       builder: (context, _) => MaterialApp(
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),
         themeMode: library.state.themeMode,
@@ -58,7 +65,7 @@ void main() {
 
         // Initial theme is system
         expect(library.state.themeMode, ThemeMode.system);
-        expect(find.text('Padrão do Sistema'), findsWidgets);
+        expect(find.text('Sistema'), findsWidgets);
 
         // Open dropdown
         await tester.tap(find.byKey(const Key('theme_mode_dropdown')));

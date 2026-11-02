@@ -1,0 +1,196 @@
+{
+  "@@locale": "en",
+  "appTitle": "MyLink",
+  "appSlogan": "Your links, always at hand",
+  "startupError": "Unable to read saved data. No data was overwritten. Close the app and verify storage before trying again.",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "save": "Save",
+  "saving": "Saving…",
+  "add": "Add",
+  "close": "Close",
+  "edit": "Edit",
+  "delete": "Delete",
+  "generate": "Generate",
+  "tryAgain": "Try again",
+  "unexpectedError": "Unable to complete. Please try again.",
+
+  "welcomeTitle": "Your links, organized",
+  "welcomeSubtitle": "Save URLs, create categories, mark favorites, and take your CSV backup with you.",
+  "welcomeGetStarted": "Get Started",
+  "welcomeFooter": "Designed to simplify the way you save the web.",
+  "welcomeSaveError": "Could not save. Please try again.",
+
+  "drawerAddLink": "Add link",
+  "drawerScanQr": "Scan QR Code",
+  "drawerGenerateQr": "Generate QR Code",
+  "drawerExportCsv": "Export CSV",
+  "drawerImportCsv": "Import CSV",
+  "drawerImportingCsv": "Importing…",
+  "drawerGoogleDrive": "Google Drive",
+  "drawerGoogleDriveSubtitle": "Backup and restore on Google Drive",
+  "drawerSettings": "Settings",
+
+  "tabHome": "Home",
+  "tabCategory": "Category",
+  "tabTimeLine": "TimeLine",
+  "tabFavorite": "Favorite",
+
+  "sortNewest": "New First",
+  "sortOldest": "Old First",
+  "sortAz": "A to Z",
+  "sortZa": "Z to A",
+  "sortTooltip": "Sort links",
+
+  "searchHint": "Search title, URL, or category…",
+  "emptyNoResults": "No results found.",
+  "emptyFavorites": "No favorite links.",
+  "emptyHome": "You haven't added any URLs here yet.",
+  "emptyCategories": "No categories found.",
+  "createCategory": "Create category",
+  "addUrl": "Add URL",
+  "linksCount": "{count, plural, =1{1 link} other{{count} links}}",
+  "@linksCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backToCategories": "Back to categories",
+
+  "linkOptionsTooltip": "Link options",
+  "markFavoriteTooltip": "Mark as favorite",
+  "removeFavoriteTooltip": "Remove from favorites",
+  "copyUrl": "Copy URL",
+  "shareUrl": "Share URL",
+  "openInExternalBrowser": "Open in external browser",
+  "deleteLinkConfirmTitle": "Delete link?",
+  "deleteLinkConfirmMessage": "This action cannot be undone.",
+  "linkCopied": "Link copied.",
+  "dialogAddUrlTitle": "Add URL",
+  "dialogEditUrlTitle": "Edit link",
+  "inputTitle": "Title",
+  "inputUrl": "URL",
+  "inputCategory": "Category",
+  "pasteLinkTooltip": "Paste link",
+  "newCategory": "New category",
+  "selectCategoryError": "Create or select a category.",
+  "saveDataError": "Failed to save data.",
+  "dialogNewCategoryTitle": "New category",
+  "inputName": "Name",
+  "deleteCategoryConfirmTitle": "Delete {category}?",
+  "@deleteCategoryConfirmTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteCategoryConfirmMessage": "{count, plural, =1{1 link in this category will also be deleted.} other{{count} links in this category will also be deleted.}}",
+  "@deleteCategoryConfirmMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deleteCategoryTooltip": "Delete category",
+
+  "shareReceiveError": "Could not receive shared item.",
+  "shareReadError": "Could not read shared link.",
+  "noValidUrlFound": "No HTTP/HTTPS URL found.",
+  "qrNoHttpUrl": "The QR Code does not contain an HTTP/HTTPS URL.",
+  "qrCode": "QR Code",
+  "generateQrCode": "Generate QR Code",
+  "noLinksToExport": "No links available to export.",
+  "exportLinksDialogTitle": "Export links",
+  "csvExported": "CSV exported.",
+  "importCsvConfirmTitle": "Import CSV?",
+  "importCsvConfirmMessage": "Links will be added to your library. Importing the same file again may create duplicates.",
+  "importSuccess": "Import completed.",
+  "fileReadError": "Unable to read file.",
+  "csvSizeLimitError": "The CSV must be at most {maxSizeMb} MB.",
+  "@csvSizeLimitError": {
+    "placeholders": {
+      "maxSizeMb": {
+        "type": "int"
+      }
+    }
+  },
+  "openBrowserError": "Unable to open browser.",
+
+  "settingsTitle": "Settings",
+  "sectionAppearance": "Appearance",
+  "themeAppTitle": "App Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "sectionInformation": "Information",
+  "aboutAppTitle": "About the App",
+  "aboutAppSubtitle": "Version, developer, and useful links.",
+
+  "aboutTitle": "About",
+  "sectionTechnicalDetails": "Technical Details",
+  "labelVersion": "Version",
+  "labelBuild": "Build",
+  "labelDeveloper": "Developer",
+  "sectionUsefulLinks": "Useful Links",
+  "privacyPolicy": "Privacy Policy",
+  "privacyPolicyError": "Unable to open privacy policy.",
+
+  "scanQrTitle": "Scan QR Code",
+  "cameraPermissionError": "Grant camera permission in device settings and try again.",
+  "cameraUnavailableError": "Camera unavailable. You can add the link manually.",
+  "reloadTooltip": "Reload",
+  "openExternalTooltip": "Open externally",
+  "pageLoadError": "Unable to load page.",
+
+  "googleDriveTitle": "Google Drive",
+  "driveConfigMissingTitle": "Missing OAuth Configuration",
+  "driveConfigMissingMessage": "The GOOGLE_SERVER_CLIENT_ID variable was not provided in the .env file. Create the file from .env.example to enable the connection.",
+  "closeMessageTooltip": "Close message",
+  "connectDriveTitle": "Connect to Google Drive",
+  "connectDriveMessage": "Connect your Google account to authorize access to Google Drive files managed by MyLink. Your local data remains saved on the device.",
+  "connectGoogleAccount": "Connect Google Account",
+  "connecting": "Connecting…",
+  "driveAuthorized": "Drive Authorized",
+  "driveNotAuthorized": "Drive Not Authorized",
+  "sectionAuthAndAccess": "Authorization and Access",
+  "driveAuthorizedScopeInfo": "The application is authorized to manage only files created or opened by it (drive.file scope).",
+  "driveNotAuthorizedScopeInfo": "For the application to access files in Drive, you need to authorize the drive.file permission.",
+  "authorizeDrive": "Authorize Drive",
+  "authorizing": "Authorizing…",
+  "verifyApiAccess": "Verify API Access",
+  "verifying": "Verifying…",
+  "sectionDriveBackup": "Backup on Google Drive",
+  "refreshInfoTooltip": "Refresh information",
+  "backupDescription": "Save all your links and categories to Google Drive or restore your data on this device.",
+  "checkingBackup": "Checking backup on Google Drive…",
+  "backupAvailableCloud": "Backup available in the cloud",
+  "lastUploaded": "Last upload: {date}",
+  "@lastUploaded": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "noBackupFound": "No backup found on Google Drive.",
+  "noLinksToBackup": "No links available for backup.",
+  "backupNow": "Back Up Now",
+  "backingUp": "Uploading…",
+  "restoreBackup": "Restore Backup",
+  "restoring": "Restoring…",
+  "restoreBackupConfirmTitle": "Restore Backup?",
+  "restoreBackupConfirmMessage": "Links and categories saved in Google Drive will be added to your library on this device.",
+  "signOut": "Sign out",
+  "signOutSubtitle": "Disconnects your Google account from this app.",
+  "signOutConfirmTitle": "Sign out?",
+  "signOutConfirmMessage": "Your Google account will be disconnected from the application. Your locally saved links will not be modified.",
+  "revokeAccess": "Revoke Google access",
+  "revokeAccessSubtitle": "Revokes permissions granted by your Google account to this application.",
+  "revokeAccessConfirmTitle": "Revoke access?",
+  "revokeAccessConfirmMessage": "This action revokes all application authorizations in your Google account. No local links or Drive files will be deleted.",
+  "driveVerifiedStatus": "Verified"
+}

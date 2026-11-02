@@ -24,7 +24,11 @@ void main() {
     testWidgets(
       'local app starts with OAuth configuration present=${config.hasServerClientId}',
       (tester) async {
-        final app = MyLinkApp(library: library, googleOAuthConfig: config);
+        final app = MyLinkApp(
+          library: library,
+          googleOAuthConfig: config,
+          locale: const Locale('pt', 'BR'),
+        );
         await tester.pumpWidget(app);
         expect(app.googleOAuthConfig, same(config));
         expect(find.text('Seus links, organizados'), findsOneWidget);
@@ -34,8 +38,10 @@ void main() {
     );
   }
 
-  testWidgets('onboarding opens an empty library', (tester) async {
-    await tester.pumpWidget(MyLinkApp(library: library));
+  testWidgets('onboarding opens an empty library in pt-BR', (tester) async {
+    await tester.pumpWidget(
+      MyLinkApp(library: library, locale: const Locale('pt', 'BR')),
+    );
     expect(find.text('Seus links, organizados'), findsOneWidget);
     await tester.runAsync(() => tester.tap(find.text('Começar')));
     await tester.pumpAndSettle();
@@ -44,11 +50,25 @@ void main() {
     expect(tester.takeException(), isNull);
   }, variant: platform);
 
+  testWidgets('onboarding in en-US renders english content', (tester) async {
+    await tester.pumpWidget(
+      MyLinkApp(library: library, locale: const Locale('en', 'US')),
+    );
+    expect(find.text('Your links, organized'), findsOneWidget);
+    await tester.runAsync(() => tester.tap(find.text('Get Started')));
+    await tester.pumpAndSettle();
+    expect(find.text('Home'), findsWidgets);
+    expect(find.text("You haven't added any URLs here yet."), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  }, variant: platform);
+
   testWidgets(
     'editor saves, favorite filters and category navigation work',
     (tester) async {
       await tester.runAsync(() => library.finishOnboarding());
-      await tester.pumpWidget(MyLinkApp(library: library));
+      await tester.pumpWidget(
+        MyLinkApp(library: library, locale: const Locale('pt', 'BR')),
+      );
       await tester.tap(find.byTooltip('Adicionar URL'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField).at(0), 'Flutter docs');
@@ -73,7 +93,7 @@ void main() {
       expect(find.text('Nenhum link favorito.'), findsOneWidget);
       await tester.tap(find.text('Category').last);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Articles'));
+      await tester.tap(find.text('Audio'));
       await tester.pumpAndSettle();
       expect(find.text('Flutter docs'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -87,7 +107,9 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.runAsync(() => library.finishOnboarding());
-    await tester.pumpWidget(MyLinkApp(library: library));
+    await tester.pumpWidget(
+      MyLinkApp(library: library, locale: const Locale('pt', 'BR')),
+    );
     for (final name in ['Category', 'TimeLine', 'Favorite', 'Home']) {
       await tester.tap(find.text(name).last);
       await tester.pumpAndSettle();
@@ -99,7 +121,11 @@ void main() {
     'startup failure blocks editing without destroying saved data',
     (tester) async {
       await tester.pumpWidget(
-        MyLinkApp(library: library, startupError: StateError('Corrupt')),
+        MyLinkApp(
+          library: library,
+          startupError: StateError('Corrupt'),
+          locale: const Locale('pt', 'BR'),
+        ),
       );
       expect(
         find.textContaining('Nenhum dado foi sobrescrito.'),

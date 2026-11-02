@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/my_link_logo.dart';
 
@@ -13,9 +14,11 @@ class AboutScreen extends StatelessWidget {
   static const String version = '0.1.0';
   static const String buildNumber = '1';
   static const String developer = 'SisCORR Desenvolvimento';
-  static const String privacyPolicyUrl = 'https://morilocorrea.github.io/';
+  static const String privacyPolicyUrl =
+      'https://morilocorrea.github.io/mylink-privacy-policy.html';
 
   Future<void> _launchPrivacyPolicy(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     final uri = Uri.parse(privacyPolicyUrl);
     try {
       final success = await launchUrl(
@@ -23,25 +26,22 @@ class AboutScreen extends StatelessWidget {
         mode: LaunchMode.externalApplication,
       );
       if (!success && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível abrir a política de privacidade.'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.privacyPolicyError)));
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Não foi possível abrir a política de privacidade.'),
-          ),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.privacyPolicyError)));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final primaryColor = AppColors.primaryOf(context);
     final secondaryColor = AppColors.secondaryOf(context);
@@ -50,7 +50,7 @@ class AboutScreen extends StatelessWidget {
     final dividerColor = AppColors.dividerOf(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sobre')),
+      appBar: AppBar(title: Text(l10n.aboutTitle)),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -70,7 +70,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'MyLink',
+                        l10n.appTitle,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: textPrimary,
@@ -78,7 +78,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Seus links, sempre à mão',
+                        l10n.appSlogan,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: textSecondary,
                         ),
@@ -91,7 +91,7 @@ class AboutScreen extends StatelessWidget {
                 // Seção Detalhes Técnicos
                 _buildSectionHeader(
                   context,
-                  title: 'Detalhes Técnicos',
+                  title: l10n.sectionTechnicalDetails,
                   icon: Icons.settings_suggest_outlined,
                   color: primaryColor,
                 ),
@@ -102,7 +102,7 @@ class AboutScreen extends StatelessWidget {
                     children: [
                       _buildInfoTile(
                         context,
-                        label: 'Versão',
+                        label: l10n.labelVersion,
                         value: version,
                         icon: Icons.info_outline,
                       ),
@@ -114,7 +114,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       _buildInfoTile(
                         context,
-                        label: 'Build',
+                        label: l10n.labelBuild,
                         value: buildNumber,
                         icon: Icons.build_circle_outlined,
                       ),
@@ -126,7 +126,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       _buildInfoTile(
                         context,
-                        label: 'Desenvolvedor',
+                        label: l10n.labelDeveloper,
                         value: developer,
                         icon: Icons.code_rounded,
                       ),
@@ -139,7 +139,7 @@ class AboutScreen extends StatelessWidget {
                 // Seção Links Úteis
                 _buildSectionHeader(
                   context,
-                  title: 'Links Úteis',
+                  title: l10n.sectionUsefulLinks,
                   icon: Icons.link_rounded,
                   color: primaryColor,
                 ),
@@ -167,7 +167,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                     ),
                     title: Text(
-                      'Política de Privacidade',
+                      l10n.privacyPolicy,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: textPrimary,

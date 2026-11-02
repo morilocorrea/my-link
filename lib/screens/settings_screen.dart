@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../bookmarks.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import 'about_screen.dart';
 
@@ -19,19 +20,21 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   BookmarkLibrary get library => widget.library;
 
-  String _getThemeModeLabel(ThemeMode mode) {
+  String _getThemeModeLabel(BuildContext context, ThemeMode mode) {
+    final l10n = AppLocalizations.of(context)!;
     switch (mode) {
       case ThemeMode.light:
-        return 'Claro';
+        return l10n.themeLight;
       case ThemeMode.dark:
-        return 'Escuro';
+        return l10n.themeDark;
       case ThemeMode.system:
-        return 'Padrão do Sistema';
+        return l10n.themeSystem;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return ListenableBuilder(
       listenable: library,
       builder: (context, _) {
@@ -43,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         final currentThemeMode = library.state.themeMode;
 
         return Scaffold(
-          appBar: AppBar(title: const Text('Configurações')),
+          appBar: AppBar(title: Text(l10n.settingsTitle)),
           body: SafeArea(
             child: Center(
               child: ConstrainedBox(
@@ -55,15 +58,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   children: [
                     _buildSectionHeader(
-                      title: 'Aparência',
+                      title: l10n.sectionAppearance,
                       icon: Icons.palette_outlined,
                       color: primaryColor,
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsCard(
                       child: _buildThemeTile(
-                        title: 'Tema do Aplicativo',
-                        subtitle: _getThemeModeLabel(currentThemeMode),
+                        title: l10n.themeAppTitle,
+                        subtitle: _getThemeModeLabel(context, currentThemeMode),
                         value: currentThemeMode,
                         primaryColor: primaryColor,
                         secondaryColor: secondaryColor,
@@ -78,7 +81,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 28),
                     _buildSectionHeader(
-                      title: 'Informações',
+                      title: l10n.sectionInformation,
                       icon: Icons.info_outline,
                       color: primaryColor,
                     ),
@@ -111,14 +114,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         title: Text(
-                          'Sobre o Aplicativo',
+                          l10n.aboutAppTitle,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: textPrimary,
                           ),
                         ),
                         subtitle: Text(
-                          'Versão, desenvolvedor e links úteis.',
+                          l10n.aboutAppSubtitle,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: textSecondary,
                           ),
@@ -134,7 +137,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       child: Column(
                         children: [
                           Text(
-                            'MyLink',
+                            l10n.appTitle,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w700,
                               color: primaryColor,
@@ -142,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Seus links, sempre à mão',
+                            l10n.appSlogan,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: textSecondary,
                             ),
@@ -238,7 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return DropdownMenuItem<ThemeMode>(
               value: mode,
               child: Text(
-                _getThemeModeLabel(mode),
+                _getThemeModeLabel(context, mode),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
                   color: primaryColor,

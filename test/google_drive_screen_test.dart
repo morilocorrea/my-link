@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mylink/bookmarks.dart';
 import 'package:mylink/controllers/google_drive_controller.dart';
+import 'package:mylink/l10n/app_localizations.dart';
 import 'package:mylink/main.dart';
 import 'package:mylink/screens/google_drive_screen.dart';
 import 'package:mylink/services/drive_access_service.dart';
@@ -11,7 +12,13 @@ import 'bookmarks_test.dart' show MemoryStorage;
 import 'google_connection_test.dart'
     show FakeDriveAccessService, FakeGoogleConnection;
 
-Widget _wrap(Widget child) => MaterialApp(home: child);
+Widget _wrap(Widget child, {Locale locale = const Locale('pt', 'BR')}) =>
+    MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: const [Locale('en', 'US'), Locale('pt', 'BR')],
+      home: child,
+    );
 
 void main() {
   final platform = TargetPlatformVariant.only(TargetPlatform.linux);
@@ -229,7 +236,11 @@ void main() {
       });
 
       await tester.pumpWidget(
-        MyLinkApp(library: library, googleDriveController: controller),
+        MyLinkApp(
+          library: library,
+          googleDriveController: controller,
+          locale: const Locale('pt', 'BR'),
+        ),
       );
       await tester.pumpAndSettle();
 
@@ -359,7 +370,7 @@ void main() {
         await library.save(
           url: 'https://dart.dev',
           title: 'Dart',
-          category: 'Technology',
+          category: 'Video',
         );
 
         final connection = FakeGoogleConnection(

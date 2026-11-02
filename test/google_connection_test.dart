@@ -513,7 +513,7 @@ void main() {
       await library.save(
         url: 'https://flutter.dev',
         title: 'Flutter',
-        category: 'Technology',
+        category: 'Video',
       );
       connection.tokenToReturn = 'valid-token';
       await controller.initialize();
@@ -537,7 +537,7 @@ void main() {
       await library.save(
         url: 'https://flutter.dev',
         title: 'Flutter',
-        category: 'Technology',
+        category: 'Video',
       );
       connection.tokenToReturn = 'valid-token';
       driveService.uploadStatusToReturn = DriveAccessStatus.serverError;
