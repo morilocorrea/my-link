@@ -89,7 +89,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerGoogleDrive => 'Google Drive';
 
   @override
-  String get drawerGoogleDriveSubtitle => 'Backup and restore on Google Drive';
+  String get drawerGoogleDriveSubtitle => 'Backup and restore';
 
   @override
   String get drawerSettings => 'Settings';

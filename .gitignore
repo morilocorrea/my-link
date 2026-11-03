@@ -58,3 +58,10 @@ app.*.map.json
 # Pasta analyze (versiona a pasta via .gitkeep e ignora todo o restante do conteúdo)
 /analyze/*
 !/analyze/.gitkeep
+
+# Android release signing keys and configurations (NUNCA versionar)
+key.properties
+**/android/key.properties
+*.jks
+*.keystore
+/key/

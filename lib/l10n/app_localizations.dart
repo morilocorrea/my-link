@@ -257,7 +257,7 @@ abstract class AppLocalizations {
   /// No description provided for @drawerGoogleDriveSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Backup and restore on Google Drive'**
+  /// **'Backup and restore'**
   String get drawerGoogleDriveSubtitle;
 
   /// No description provided for @drawerSettings.

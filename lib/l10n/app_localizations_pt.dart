@@ -90,8 +90,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get drawerGoogleDrive => 'Google Drive';
 
   @override
-  String get drawerGoogleDriveSubtitle =>
-      'Backup e restauração no Google Drive';
+  String get drawerGoogleDriveSubtitle => 'Backup e restauração';
 
   @override
   String get drawerSettings => 'Configurações';

@@ -1,0 +1,9 @@
+# Arquivo de exemplo para configuração da chave de assinatura do Android Release
+# Copie este arquivo para 'android/key.properties' e preencha com as suas credenciais reais.
+# ATENÇÃO: Nunca comite o arquivo 'key.properties' real nem seu arquivo .jks no Git!
+
+storePassword=SUA_SENHA_DO_KEYSTORE
+keyPassword=SUA_SENHA_DA_CHAVE
+keyAlias=upload
+# Caminho relativo a 'android/app/' (ou use o caminho absoluto, ex: C:\\Users\\seu-usuario\\upload-keystore.jks)
+storeFile=upload-keystore.jks
