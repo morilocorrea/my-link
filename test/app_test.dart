@@ -45,7 +45,7 @@ void main() {
     expect(find.text('Seus links, organizados'), findsOneWidget);
     await tester.runAsync(() => tester.tap(find.text('Começar')));
     await tester.pumpAndSettle();
-    expect(find.text('Home'), findsWidgets);
+    expect(find.text('Início'), findsWidgets);
     expect(find.text('Você ainda não adicionou URLs aqui.'), findsOneWidget);
     expect(tester.takeException(), isNull);
   }, variant: platform);
@@ -83,7 +83,7 @@ void main() {
         () => tester.tap(find.byTooltip('Marcar favorito')),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Favorite').last);
+      await tester.tap(find.text('Favoritos').last);
       await tester.pumpAndSettle();
       expect(find.text('Flutter docs'), findsOneWidget);
       await tester.runAsync(
@@ -91,7 +91,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Nenhum link favorito.'), findsOneWidget);
-      await tester.tap(find.text('Category').last);
+      await tester.tap(find.text('Categorias').last);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Audio'));
       await tester.pumpAndSettle();
@@ -110,7 +110,12 @@ void main() {
     await tester.pumpWidget(
       MyLinkApp(library: library, locale: const Locale('pt', 'BR')),
     );
-    for (final name in ['Category', 'TimeLine', 'Favorite', 'Home']) {
+    for (final name in [
+      'Categorias',
+      'Linha do Tempo',
+      'Favoritos',
+      'Início',
+    ]) {
       await tester.tap(find.text(name).last);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);

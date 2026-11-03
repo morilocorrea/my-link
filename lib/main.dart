@@ -5,6 +5,7 @@ import 'bookmarks.dart';
 import 'controllers/google_drive_controller.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/library_screen.dart';
+import 'services/camera_permission_service.dart';
 import 'services/drive_access_service.dart';
 import 'services/google_connection.dart';
 import 'services/google_oauth_config.dart';
@@ -62,12 +63,14 @@ class MyLinkApp extends StatelessWidget {
     this.startupError,
     this.googleOAuthConfig = const GoogleOAuthConfig.fromEnvironment(),
     this.googleDriveController,
+    this.cameraPermissionService = const DefaultCameraPermissionService(),
     this.locale,
   });
   final BookmarkLibrary library;
   final Object? startupError;
   final GoogleOAuthConfig googleOAuthConfig;
   final GoogleDriveController? googleDriveController;
+  final CameraPermissionService cameraPermissionService;
   final Locale? locale;
 
   @override
@@ -104,6 +107,7 @@ class MyLinkApp extends StatelessWidget {
           ? LibraryScreen(
               library: library,
               googleDriveController: googleDriveController,
+              cameraPermissionService: cameraPermissionService,
             )
           : _Welcome(library: library),
     ),

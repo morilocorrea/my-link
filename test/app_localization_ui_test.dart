@@ -25,7 +25,10 @@ void main() {
 
   tearDown(() => library.dispose());
 
-  Widget buildSubject(Widget child, {Locale locale = const Locale('pt', 'BR')}) {
+  Widget buildSubject(
+    Widget child, {
+    Locale locale = const Locale('pt', 'BR'),
+  }) {
     return ListenableBuilder(
       listenable: library,
       builder: (context, _) => MaterialApp(
@@ -85,10 +88,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        buildSubject(
-          const AboutScreen(),
-          locale: const Locale('pt', 'BR'),
-        ),
+        buildSubject(const AboutScreen(), locale: const Locale('pt', 'BR')),
       );
       await tester.pumpAndSettle();
 
@@ -104,10 +104,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        buildSubject(
-          const AboutScreen(),
-          locale: const Locale('en', 'US'),
-        ),
+        buildSubject(const AboutScreen(), locale: const Locale('en', 'US')),
       );
       await tester.pumpAndSettle();
 
@@ -132,9 +129,13 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Buscar título, URL ou categoria…'), findsOneWidget);
+        expect(find.text('Início'), findsWidgets);
+        expect(find.text('Categorias'), findsWidgets);
+        expect(find.text('Linha do Tempo'), findsWidgets);
+        expect(find.text('Favoritos'), findsWidgets);
 
         // Switch to Category tab
-        await tester.tap(find.text('Category').last);
+        await tester.tap(find.text('Categorias').last);
         await tester.pumpAndSettle();
 
         // Standard categories are preserved in their registered names
@@ -153,6 +154,10 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('Search title, URL, or category…'), findsOneWidget);
+        expect(find.text('Home'), findsWidgets);
+        expect(find.text('Category'), findsWidgets);
+        expect(find.text('TimeLine'), findsWidgets);
+        expect(find.text('Favorite'), findsWidgets);
         expect(find.text('Audio'), findsOneWidget);
         expect(find.text('Blog'), findsOneWidget);
         expect(find.text('Video'), findsOneWidget);

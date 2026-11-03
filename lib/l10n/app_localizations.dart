@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Confirm'**
   String get confirm;
 
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
   /// No description provided for @save.
   ///
   /// In en, this message translates to:
@@ -709,6 +715,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Scan QR Code'**
   String get scanQrTitle;
+
+  /// No description provided for @cameraPermissionRationaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera Access'**
+  String get cameraPermissionRationaleTitle;
+
+  /// No description provided for @cameraPermissionRationaleMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'To scan QR codes and automatically add links to your library, MyLink needs access to your device camera.'**
+  String get cameraPermissionRationaleMessage;
 
   /// No description provided for @cameraPermissionError.
   ///

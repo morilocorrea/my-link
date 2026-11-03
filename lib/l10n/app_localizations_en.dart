@@ -25,6 +25,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirm => 'Confirm';
 
   @override
+  String get ok => 'OK';
+
+  @override
   String get save => 'Save';
 
   @override
@@ -336,6 +339,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanQrTitle => 'Scan QR Code';
+
+  @override
+  String get cameraPermissionRationaleTitle => 'Camera Access';
+
+  @override
+  String get cameraPermissionRationaleMessage =>
+      'To scan QR codes and automatically add links to your library, MyLink needs access to your device camera.';
 
   @override
   String get cameraPermissionError =>

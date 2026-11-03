@@ -5,6 +5,7 @@
   "startupError": "Unable to read saved data. No data was overwritten. Close the app and verify storage before trying again.",
   "cancel": "Cancel",
   "confirm": "Confirm",
+  "ok": "OK",
   "save": "Save",
   "saving": "Saving…",
   "add": "Add",
@@ -140,6 +141,8 @@
   "privacyPolicyError": "Unable to open privacy policy.",
 
   "scanQrTitle": "Scan QR Code",
+  "cameraPermissionRationaleTitle": "Camera Access",
+  "cameraPermissionRationaleMessage": "To scan QR codes and automatically add links to your library, MyLink needs access to your device camera.",
   "cameraPermissionError": "Grant camera permission in device settings and try again.",
   "cameraUnavailableError": "Camera unavailable. You can add the link manually.",
   "reloadTooltip": "Reload",

@@ -25,6 +25,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get confirm => 'Confirmar';
 
   @override
+  String get ok => 'OK';
+
+  @override
   String get save => 'Salvar';
 
   @override
@@ -96,16 +99,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get drawerSettings => 'Configurações';
 
   @override
-  String get tabHome => 'Home';
+  String get tabHome => 'Início';
 
   @override
-  String get tabCategory => 'Category';
+  String get tabCategory => 'Categorias';
 
   @override
-  String get tabTimeLine => 'TimeLine';
+  String get tabTimeLine => 'Linha do Tempo';
 
   @override
-  String get tabFavorite => 'Favorite';
+  String get tabFavorite => 'Favoritos';
 
   @override
   String get sortNewest => 'New First';
@@ -339,6 +342,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get scanQrTitle => 'Ler QR Code';
+
+  @override
+  String get cameraPermissionRationaleTitle => 'Acesso à Câmera';
+
+  @override
+  String get cameraPermissionRationaleMessage =>
+      'Para escanear códigos QR e adicionar links automaticamente à sua biblioteca, o MyLink precisa de acesso à câmera do seu dispositivo.';
 
   @override
   String get cameraPermissionError =>

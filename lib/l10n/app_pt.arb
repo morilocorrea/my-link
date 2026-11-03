@@ -5,6 +5,7 @@
   "startupError": "Não foi possível ler os dados salvos. Nenhum dado foi sobrescrito. Feche o app e verifique o armazenamento antes de tentar novamente.",
   "cancel": "Cancelar",
   "confirm": "Confirmar",
+  "ok": "OK",
   "save": "Salvar",
   "saving": "Salvando…",
   "add": "Adicionar",
@@ -31,10 +32,10 @@
   "drawerGoogleDriveSubtitle": "Backup e restauração",
   "drawerSettings": "Configurações",
 
-  "tabHome": "Home",
-  "tabCategory": "Category",
-  "tabTimeLine": "TimeLine",
-  "tabFavorite": "Favorite",
+  "tabHome": "Início",
+  "tabCategory": "Categorias",
+  "tabTimeLine": "Linha do Tempo",
+  "tabFavorite": "Favoritos",
 
   "sortNewest": "New First",
   "sortOldest": "Old First",
@@ -112,6 +113,8 @@
   "privacyPolicyError": "Não foi possível abrir a política de privacidade.",
 
   "scanQrTitle": "Ler QR Code",
+  "cameraPermissionRationaleTitle": "Acesso à Câmera",
+  "cameraPermissionRationaleMessage": "Para escanear códigos QR e adicionar links automaticamente à sua biblioteca, o MyLink precisa de acesso à câmera do seu dispositivo.",
   "cameraPermissionError": "Permita o acesso à câmera nas configurações do dispositivo e tente novamente.",
   "cameraUnavailableError": "Câmera indisponível. Você pode adicionar o link manualmente.",
   "reloadTooltip": "Recarregar",

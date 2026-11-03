@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../bookmarks.dart';
 import '../controllers/google_drive_controller.dart';
 import '../l10n/app_localizations.dart';
+import '../services/camera_permission_service.dart';
 import '../services/drive_access_service.dart';
 import '../services/google_connection.dart';
 import '../services/google_oauth_config.dart';
@@ -27,9 +28,11 @@ class LibraryScreen extends StatefulWidget {
     super.key,
     required this.library,
     this.googleDriveController,
+    this.cameraPermissionService = const DefaultCameraPermissionService(),
   });
   final BookmarkLibrary library;
   final GoogleDriveController? googleDriveController;
+  final CameraPermissionService cameraPermissionService;
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
@@ -134,7 +137,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
-  Future<bool> _confirm(String title, String message) async {
+  Future<bool> _confirm(
+    String title,
+    String message, {
+    String? confirmLabel,
+  }) async {
     final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
@@ -149,7 +156,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.confirm),
+            child: Text(confirmLabel ?? l10n.confirm),
           ),
         ],
       ),
@@ -359,8 +366,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
     controller.dispose();
   }
 
+  Future<bool> _showCameraPermissionRationale() {
+    final l10n = AppLocalizations.of(context)!;
+    return _confirm(
+      l10n.cameraPermissionRationaleTitle,
+      l10n.cameraPermissionRationaleMessage,
+      confirmLabel: l10n.ok,
+    );
+  }
+
   Future<void> _scan() async {
     final l10n = AppLocalizations.of(context)!;
+    final isGranted = await widget.cameraPermissionService
+        .isCameraPermissionGranted();
+    if (!mounted) return;
+
+    if (!isGranted) {
+      final proceed = await _showCameraPermissionRationale();
+      if (!proceed || !mounted) return;
+    }
+
     final value = await Navigator.of(
       context,
     ).push<String>(MaterialPageRoute(builder: (_) => const ScanScreen()));
