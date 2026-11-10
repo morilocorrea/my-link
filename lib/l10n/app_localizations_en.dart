@@ -98,6 +98,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerSettings => 'Settings';
 
   @override
+  String get drawerRateUs => 'Rate us';
+
+  @override
   String get tabHome => 'Home';
 
   @override

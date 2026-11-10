@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get drawerSettings;
 
+  /// No description provided for @drawerRateUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate us'**
+  String get drawerRateUs;
+
   /// No description provided for @tabHome.
   ///
   /// In en, this message translates to:

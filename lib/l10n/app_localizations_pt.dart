@@ -99,6 +99,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get drawerSettings => 'Configurações';
 
   @override
+  String get drawerRateUs => 'Avalie-nos';
+
+  @override
   String get tabHome => 'Início';
 
   @override

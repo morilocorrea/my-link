@@ -29,10 +29,16 @@ class LibraryScreen extends StatefulWidget {
     required this.library,
     this.googleDriveController,
     this.cameraPermissionService = const DefaultCameraPermissionService(),
+    this.urlLauncher,
   });
+
+  static const String playStoreUrl =
+      'https://play.google.com/store/apps/details?id=com.siscorr.mylink';
+
   final BookmarkLibrary library;
   final GoogleDriveController? googleDriveController;
   final CameraPermissionService cameraPermissionService;
+  final Future<bool> Function(Uri uri, {LaunchMode mode})? urlLauncher;
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
@@ -543,10 +549,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
           builder: (_) => BrowserScreen(url: link.url, title: link.title),
         ),
       );
-    } else if (!await launchUrl(
+    } else if (!await (widget.urlLauncher ?? launchUrl)(
       Uri.parse(link.url),
       mode: LaunchMode.externalApplication,
     )) {
+      throw FormatException(l10n.openBrowserError);
+    }
+  });
+
+  Future<void> _rateUs() => _run(() async {
+    final l10n = AppLocalizations.of(context)!;
+    final normalized = normalizeUrl(LibraryScreen.playStoreUrl);
+    final uri = Uri.parse(normalized);
+    final launcher = widget.urlLauncher ?? launchUrl;
+    if (!await launcher(uri, mode: LaunchMode.externalApplication)) {
       throw FormatException(l10n.openBrowserError);
     }
   });
@@ -815,6 +831,14 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     builder: (_) => SettingsScreen(library: library),
                   ),
                 );
+              },
+            ),
+            _drawerTile(
+              icon: Icons.star_rate_outlined,
+              title: l10n.drawerRateUs,
+              onTap: () {
+                Navigator.pop(context);
+                _rateUs();
               },
             ),
           ],
