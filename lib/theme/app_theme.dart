@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 abstract final class AppColors {
@@ -201,6 +202,13 @@ abstract final class AppTheme {
         foregroundColor: AppColors.textPrimaryLight,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.dark,
+        ),
         titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 22,
           fontWeight: FontWeight.w600,
@@ -362,6 +370,13 @@ abstract final class AppTheme {
         foregroundColor: AppColors.textPrimaryDark,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarIconBrightness: Brightness.light,
+        ),
         titleTextStyle: GoogleFonts.plusJakartaSans(
           fontSize: 22,
           fontWeight: FontWeight.w600,

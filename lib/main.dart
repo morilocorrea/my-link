@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'bookmarks.dart';
 import 'controllers/google_drive_controller.dart';
@@ -29,6 +31,32 @@ Locale resolveAppLocale(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Habilita o modo Edge-to-Edge nativo com barras transparentes
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ),
+  );
+
+  // Inicializa o SDK Google Mobile Ads em plataformas móveis suportadas
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS)) {
+    try {
+      await MobileAds.instance.initialize();
+      if (kDebugMode) {
+        debugPrint('MobileAds inicializado com sucesso.');
+      }
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('Erro ao inicializar MobileAds: $e\n$stack');
+      }
+    }
+  }
+
   final library = BookmarkLibrary(PreferenceStorage());
   const config = GoogleOAuthConfig.fromEnvironment();
   final googleConnection = DefaultGoogleConnection(config: config);

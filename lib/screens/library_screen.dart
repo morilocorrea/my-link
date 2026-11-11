@@ -18,6 +18,7 @@ import '../services/drive_access_service.dart';
 import '../services/google_connection.dart';
 import '../services/google_oauth_config.dart';
 import '../theme/app_theme.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/my_link_logo.dart';
 import 'google_drive_screen.dart';
 import 'settings_screen.dart';
@@ -30,6 +31,7 @@ class LibraryScreen extends StatefulWidget {
     this.googleDriveController,
     this.cameraPermissionService = const DefaultCameraPermissionService(),
     this.urlLauncher,
+    this.bannerAdBuilder,
   });
 
   static const String playStoreUrl =
@@ -39,6 +41,7 @@ class LibraryScreen extends StatefulWidget {
   final GoogleDriveController? googleDriveController;
   final CameraPermissionService cameraPermissionService;
   final Future<bool> Function(Uri uri, {LaunchMode mode})? urlLauncher;
+  final Widget Function(BuildContext context)? bannerAdBuilder;
   @override
   State<LibraryScreen> createState() => _LibraryScreenState();
 }
@@ -49,6 +52,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
   String _search = '';
   String? _category;
   bool _importing = false;
+  bool _isAdLoaded = false;
+  bool get isAdLoaded => _isAdLoaded;
   final _searchController = TextEditingController();
   StreamSubscription<List<SharedMediaFile>>? _subscription;
 
@@ -1359,40 +1364,92 @@ class _LibraryScreenState extends State<LibraryScreen> {
           child: const Icon(Icons.add_rounded, size: 24),
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceElevatedOf(context),
-          border: Border(
-            top: BorderSide(color: AppColors.dividerOf(context), width: 1),
-          ),
+      bottomNavigationBar: _buildBottomBar(context, titles),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context, List<String> titles) {
+    final viewPadding = MediaQuery.viewPaddingOf(context);
+    final view = View.of(context);
+    final dpr = view.devicePixelRatio;
+
+    // Resolução resiliente dos insets de sistema para modo retrato e paisagem
+    final bottomInset = viewPadding.bottom > 0
+        ? viewPadding.bottom
+        : (dpr > 0 ? view.viewPadding.bottom / dpr : 0.0);
+    final leftInset = viewPadding.left > 0
+        ? viewPadding.left
+        : (dpr > 0 ? view.viewPadding.left / dpr : 0.0);
+    final rightInset = viewPadding.right > 0
+        ? viewPadding.right
+        : (dpr > 0 ? view.viewPadding.right / dpr : 0.0);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevatedOf(context),
+        border: Border(
+          top: BorderSide(color: AppColors.dividerOf(context), width: 1),
         ),
-        child: NavigationBar(
-          height: 64,
-          selectedIndex: _tab,
-          onDestinationSelected: (tab) {
-            _selectTab(tab);
-          },
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home_rounded),
-              label: titles[0],
+      ),
+      padding: EdgeInsets.only(
+        left: leftInset,
+        right: rightInset,
+        // Aplica o inset de sistema (48dp para 3 botões ou 16-24dp para gestos)
+        // uma única vez na base de todo o conjunto de rodapé.
+        bottom: bottomInset,
+      ),
+      child: MediaQuery(
+        // Zera os insets internos para impedir duplicação no SafeArea do NavigationBar
+        // ou deslocamentos indesejados no BannerAdWidget.
+        data: MediaQuery.of(
+          context,
+        ).copyWith(padding: EdgeInsets.zero, viewPadding: EdgeInsets.zero),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            NavigationBar(
+              height: 64,
+              selectedIndex: _tab,
+              onDestinationSelected: (tab) {
+                _selectTab(tab);
+              },
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(Icons.home_outlined),
+                  selectedIcon: const Icon(Icons.home_rounded),
+                  label: titles[0],
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.grid_view_outlined),
+                  selectedIcon: const Icon(Icons.grid_view_rounded),
+                  label: titles[1],
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.access_time_outlined),
+                  selectedIcon: const Icon(Icons.access_time_filled_rounded),
+                  label: titles[2],
+                ),
+                NavigationDestination(
+                  icon: const Icon(Icons.favorite_outline_rounded),
+                  selectedIcon: const Icon(Icons.favorite_rounded),
+                  label: titles[3],
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: const Icon(Icons.grid_view_outlined),
-              selectedIcon: const Icon(Icons.grid_view_rounded),
-              label: titles[1],
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.access_time_outlined),
-              selectedIcon: const Icon(Icons.access_time_filled_rounded),
-              label: titles[2],
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.favorite_outline_rounded),
-              selectedIcon: const Icon(Icons.favorite_rounded),
-              label: titles[3],
-            ),
+            widget.bannerAdBuilder != null
+                ? widget.bannerAdBuilder!(context)
+                : BannerAdWidget(
+                    onAdLoaded: () {
+                      if (mounted && !_isAdLoaded) {
+                        setState(() => _isAdLoaded = true);
+                      }
+                    },
+                    onAdFailedToLoad: () {
+                      if (mounted && _isAdLoaded) {
+                        setState(() => _isAdLoaded = false);
+                      }
+                    },
+                  ),
           ],
         ),
       ),
